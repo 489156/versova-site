@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>도움말 · Support</title>
+<meta name="description" content="어제의 나 — 도움말 · Support">
+<meta name="robots" content="index, follow">
+<style>
+  :root {
+    color-scheme: dark;
+    --ground: #1a1a1a;
+    --surface: #2c2c2c;
+    --ink: #ffffff;
+    --muted: #b0b0b0;
+    --faint: #7a7a7a;
+    --rule: #3a3a3a;
+    --accent: #4caf50;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 400 16px/1.75 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+      "Malgun Gothic", "Segoe UI", Roboto, sans-serif;
+    word-break: keep-all;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 42rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+  header { border-bottom: 1px solid var(--rule); padding-bottom: 1.25rem; margin-bottom: 2rem; }
+  .brand { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; color: var(--ink); }
+  .brand svg { flex: none; }
+  .brand span { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
+  .brand small { display: block; font-size: 0.75rem; font-weight: 400; color: var(--faint); letter-spacing: 0.02em; }
+  h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 1.25rem; line-height: 1.3; }
+  h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 2.75rem 0 0.85rem; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 2rem 0 0.5rem; }
+  p { margin: 0 0 1rem; color: var(--muted); }
+  p strong, li strong { color: var(--ink); font-weight: 600; }
+  ul, ol { margin: 0 0 1rem; padding-left: 1.35rem; color: var(--muted); }
+  li { margin-bottom: 0.4rem; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.875em; background: var(--surface); border-radius: 3px; padding: 0.1em 0.35em;
+  }
+  nav { display: flex; gap: 1.25rem; margin-top: 1rem; font-size: 0.9rem; }
+  footer {
+    margin-top: 4rem; padding-top: 1.25rem; border-top: 1px solid var(--rule);
+    font-size: 0.85rem; color: var(--faint);
+  }
+  footer a { color: var(--faint); }
+
+/* ------------------------- 회사·제품 소개 (첫 페이지) ------------------------ */
+
+  .lede { font-size: 1.15rem; color: var(--text); margin-top: -0.4rem; }
+
+  /* 아직 채우지 않은 법인 정보. 눈에 띄지 않으면 그대로 공개된다. */
+  .todo {
+    background: #4a3a12;
+    color: #ffd66b;
+    padding: 0.1em 0.45em;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+
+  .product { display: flex; gap: 2.4rem; align-items: flex-start; flex-wrap: wrap; }
+  .product-text { flex: 1 1 17rem; min-width: 0; }
+  .product-text h3 { margin-top: 0; }
+  .product-text .en { color: var(--faint); font-weight: 400; }
+  .status { color: var(--accent); font-size: 0.95rem; }
+
+  .product-shots { display: flex; gap: 0.9rem; }
+  .product-shots figure { margin: 0; }
+  .product-shots img {
+    width: 160px;
+    height: auto;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+  }
+
+  table.info { border-collapse: collapse; width: 100%; font-size: 0.97rem; }
+  table.info th, table.info td {
+    text-align: left;
+    padding: 0.6rem 0.9rem 0.6rem 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.info th { color: var(--faint); font-weight: 400; width: 11rem; white-space: nowrap; }
+
+  @media (max-width: 640px) {
+    .product-shots { display: none; }
+    table.info th { width: auto; white-space: normal; display: block; border: 0; padding-bottom: 0; }
+    table.info td { display: block; padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="../">
+      <svg width="30" height="30" viewBox="0 0 1024 1024" aria-hidden="true">
+  <rect width="1024" height="1024" rx="220" fill="#1a1a1a"/>
+  <line x1="250" y1="704" x2="774" y2="704" stroke="#3a3a3a" stroke-width="24" stroke-linecap="round"/>
+  <rect x="330" y="478" width="152" height="214" rx="76" fill="#4a4a4a"/>
+  <rect x="542" y="308" width="152" height="384" rx="76" fill="#4caf50"/>
+</svg>
+      <span>어제의 나<small>Yesterday's Me</small></span>
+    </a>
+    <nav>
+      <a href="../privacy/">개인정보 처리방침</a>
+      <a href="./">도움말</a>
+    </nav>
+  </header>
+<h1>어제의 나 — 도움말 / Yesterday's Me — Support</h1>
+<h2>도움말</h2>
+<p>무엇이든 물어보세요. 답장은 보통 2~3일 안에 드려요.</p>
+<p><strong>문의</strong> · support@versova.dev</p>
+<p>메일에 아래 두 가지를 같이 적어 주시면 훨씬 빨리 도와드릴 수 있어요.</p>
+<ul>
+<li>쓰는 기기와 OS 버전 (예: iPhone 14, iOS 18.2)</li>
+<li>앱 버전 — 설정 화면 맨 위 정보 카드에 있어요</li>
+</ul>
+<h3>기록이 안 보여요</h3>
+<p>이 앱은 기록을 서버가 아니라 <strong>휴대폰 안에만</strong> 둬요. 그래서 앱을 지우면 기록도 같이 사라지고, 다시 설치해도 돌아오지 않아요.</p>
+<p>정기적으로 설정 → 데이터 → <strong>백업 파일 내보내기</strong>로 파일을 하나 만들어 두세요. 메일로 자신에게 보내 두는 것만으로도 충분해요.</p>
+<h3>휴대폰을 바꿔요</h3>
+<ol>
+<li>쓰던 폰에서 설정 → 데이터 → <strong>백업 파일 내보내기</strong></li>
+<li>만들어진 파일을 메일이나 클라우드로 새 폰에 옮기기</li>
+<li>새 폰에서 앱을 설치하고 설정 → 데이터 → <strong>백업 파일 불러오기</strong></li>
+</ol>
+<p>기기 백업(iCloud, Google)으로도 함께 넘어가지만, 백업 파일을 직접 만들어 두는 쪽이 확실해요.</p>
+<h3>알림이 안 와요</h3>
+<p>세 가지를 차례로 확인해 주세요.</p>
+<ol>
+<li>앱 설정에서 <strong>매일 기록 알림</strong>이 켜져 있는지</li>
+<li>휴대폰 설정 → 알림 → 어제의 나에서 알림이 켜져 있는지</li>
+<li>방해 금지 모드나 집중 모드가 그 시간에 켜져 있지 않은지</li>
+</ol>
+<p>알림은 정확히 그 시각이 아니라 몇 분 늦게 올 수 있어요. 배터리를 아끼려고 일부러 그렇게 만들었어요.</p>
+<h3>기록을 전부 지우고 싶어요</h3>
+<p>설정 → 데이터 → <strong>전체 삭제</strong>. 두 번 확인한 뒤에 지워지고, 되돌릴 수 없어요. 지우기 전에 백업 파일을 먼저 만들어 두세요.</p>
+<p>앱을 지우면 기록도 함께 사라져요.</p>
+<h3>제 기록을 누가 볼 수 있나요</h3>
+<p>아무도요. 계정도 서버도 없고, 앱이 인터넷에 연결하지 않아요. 비행기 모드에서도 모든 기능이 그대로 동작하는 것으로 확인할 수 있어요.</p>
+<p>자세한 내용은 <a href="../privacy/">개인정보 처리방침</a>에 있어요.</p>
+<hr>
+<h2>Support</h2>
+<p>Ask us anything. We usually reply within two or three days.</p>
+<p><strong>Contact</strong> · support@versova.dev</p>
+<p>Two things help us answer faster:</p>
+<ul>
+<li>Your device and OS version (e.g. iPhone 14, iOS 18.2)</li>
+<li>The app version — it's on the info card at the top of Settings</li>
+</ul>
+<h3>My records are gone</h3>
+<p>This app keeps your records <strong>on the phone only</strong>, never on a server. Deleting the app deletes them with it, and reinstalling does not bring them back.</p>
+<p>Export a backup now and then: Settings → Data → <strong>Export backup file</strong>. Mailing it to yourself is enough.</p>
+<h3>I'm switching phones</h3>
+<ol>
+<li>On the old phone: Settings → Data → <strong>Export backup file</strong></li>
+<li>Move the file across by mail or a cloud drive</li>
+<li>On the new phone: install the app, then Settings → Data → <strong>Import backup file</strong></li>
+</ol>
+<p>A device backup (iCloud, Google) carries it too, but making the file yourself is the sure way.</p>
+<h3>The reminder never arrives</h3>
+<p>Check these three, in order:</p>
+<ol>
+<li>The daily reminder is switched on in the app's Settings</li>
+<li>Notifications are allowed for Yesterday's Me in your phone's Settings</li>
+<li>Do Not Disturb or a Focus mode isn't running at that time</li>
+</ol>
+<p>Reminders can arrive a few minutes late rather than exactly on time. That is deliberate — it saves battery.</p>
+<h3>I want to erase everything</h3>
+<p>Settings → Data → <strong>Delete everything</strong>. It asks twice and cannot be undone. Export a backup first if there is any chance you'll want it back.</p>
+<p>Deleting the app erases your records too.</p>
+<h3>Who can see what I write</h3>
+<p>Nobody. There is no account and no server, and the app makes no network requests. You can confirm it yourself: everything works in airplane mode.</p>
+<p>The <a href="../privacy/">privacy policy</a> has the details.</p>
+  <footer>
+    <p>어제의 나 · support@versova.dev</p>
+  </footer>
+</div>
+</body>
+</html>

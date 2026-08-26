@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>채워주세요 — 국문 상호</title>
+<meta name="description" content="어제의 나 — 채워주세요 — 국문 상호">
+<meta name="robots" content="index, follow">
+<style>
+  :root {
+    color-scheme: dark;
+    --ground: #1a1a1a;
+    --surface: #2c2c2c;
+    --ink: #ffffff;
+    --muted: #b0b0b0;
+    --faint: #7a7a7a;
+    --rule: #3a3a3a;
+    --accent: #4caf50;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 400 16px/1.75 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+      "Malgun Gothic", "Segoe UI", Roboto, sans-serif;
+    word-break: keep-all;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 42rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+  header { border-bottom: 1px solid var(--rule); padding-bottom: 1.25rem; margin-bottom: 2rem; }
+  .brand { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; color: var(--ink); }
+  .brand svg { flex: none; }
+  .brand span { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
+  .brand small { display: block; font-size: 0.75rem; font-weight: 400; color: var(--faint); letter-spacing: 0.02em; }
+  h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 1.25rem; line-height: 1.3; }
+  h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 2.75rem 0 0.85rem; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 2rem 0 0.5rem; }
+  p { margin: 0 0 1rem; color: var(--muted); }
+  p strong, li strong { color: var(--ink); font-weight: 600; }
+  ul, ol { margin: 0 0 1rem; padding-left: 1.35rem; color: var(--muted); }
+  li { margin-bottom: 0.4rem; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.875em; background: var(--surface); border-radius: 3px; padding: 0.1em 0.35em;
+  }
+  nav { display: flex; gap: 1.25rem; margin-top: 1rem; font-size: 0.9rem; }
+  footer {
+    margin-top: 4rem; padding-top: 1.25rem; border-top: 1px solid var(--rule);
+    font-size: 0.85rem; color: var(--faint);
+  }
+  footer a { color: var(--faint); }
+
+/* ------------------------- 회사·제품 소개 (첫 페이지) ------------------------ */
+
+  .lede { font-size: 1.15rem; color: var(--text); margin-top: -0.4rem; }
+
+  /* 아직 채우지 않은 법인 정보. 눈에 띄지 않으면 그대로 공개된다. */
+  .todo {
+    background: #4a3a12;
+    color: #ffd66b;
+    padding: 0.1em 0.45em;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+
+  .product { display: flex; gap: 2.4rem; align-items: flex-start; flex-wrap: wrap; }
+  .product-text { flex: 1 1 17rem; min-width: 0; }
+  .product-text h3 { margin-top: 0; }
+  .product-text .en { color: var(--faint); font-weight: 400; }
+  .status { color: var(--accent); font-size: 0.95rem; }
+
+  .product-shots { display: flex; gap: 0.9rem; }
+  .product-shots figure { margin: 0; }
+  .product-shots img {
+    width: 160px;
+    height: auto;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+  }
+
+  table.info { border-collapse: collapse; width: 100%; font-size: 0.97rem; }
+  table.info th, table.info td {
+    text-align: left;
+    padding: 0.6rem 0.9rem 0.6rem 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.info th { color: var(--faint); font-weight: 400; width: 11rem; white-space: nowrap; }
+
+  @media (max-width: 640px) {
+    .product-shots { display: none; }
+    table.info th { width: auto; white-space: normal; display: block; border: 0; padding-bottom: 0; }
+    table.info td { display: block; padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="./">
+      <svg width="30" height="30" viewBox="0 0 1024 1024" aria-hidden="true">
+  <rect width="1024" height="1024" rx="220" fill="#1a1a1a"/>
+  <line x1="250" y1="704" x2="774" y2="704" stroke="#3a3a3a" stroke-width="24" stroke-linecap="round"/>
+  <rect x="330" y="478" width="152" height="214" rx="76" fill="#4a4a4a"/>
+  <rect x="542" y="308" width="152" height="384" rx="76" fill="#4caf50"/>
+</svg>
+      <span>어제의 나<small>Yesterday's Me</small></span>
+    </a>
+    <nav>
+      <a href="./privacy/">개인정보 처리방침</a>
+      <a href="./support/">도움말</a>
+    </nav>
+  </header>
+
+<h1>채워주세요 — 국문 상호</h1>
+<p class="lede">휴대폰 안에서만 동작하는 개인용 기록 앱을 만듭니다.</p>
+
+<h2>만드는 것</h2>
+
+<div class="product">
+  <div class="product-text">
+    <h3>어제의 나 <span class="en">Yesterday's Me</span></h3>
+    <p>어제보다 무엇이 나아졌는지를 하루 한 줄로 적는 개인용 기록 앱이에요.
+    커리어, 신체, 정서, 자산 네 칸 중 한 칸만 적어도 저장돼요.</p>
+    <p>기록은 사용자의 휴대폰에만 있어요. 계정도 서버도 없고, 앱이 인터넷에
+    연결하지 않아요. 그래서 비행기 모드에서도 모든 기능이 그대로 동작해요.</p>
+    <p class="status">iOS · Android 출시 준비 중</p>
+    <p><a href="./privacy/">개인정보 처리방침</a> · <a href="./support/">도움말</a></p>
+  </div>
+  <div class="product-shots">
+    <figure><img src="./record.png" width="360" height="780" alt="기록 화면 — 네 축에 한 줄씩 적는다" loading="lazy"></figure>
+    <figure><img src="./signals.png" width="360" height="780" alt="나의 변화 화면 — 복귀 시간과 유지율" loading="lazy"></figure>
+  </div>
+</div>
+
+<h2>회사 정보</h2>
+
+<table class="info">
+  <tbody>
+    <tr><th>상호</th><td><mark class="todo">채워주세요 — 국문 상호</mark></td></tr>
+    <tr><th>영문 상호</th><td><mark class="todo">FILL IN — English legal name</mark></td></tr>
+    <tr><th>대표자</th><td><mark class="todo">채워주세요 — 대표자 이름</mark></td></tr>
+    <tr><th>사업자등록번호</th><td><mark class="todo">채워주세요 — 사업자등록번호</mark></td></tr>
+    <tr><th>주소</th><td><mark class="todo">채워주세요 — 사업장 주소</mark></td></tr>
+    <tr><th>설립</th><td><mark class="todo">채워주세요 — 설립 연도</mark></td></tr>
+    <tr><th>문의</th><td>support@versova.dev</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h1>FILL IN — English legal name</h1>
+<p class="lede">We build personal journaling apps that run entirely on the phone.</p>
+
+<h2>What we build</h2>
+
+<div class="product">
+  <div class="product-text">
+    <h3>Yesterday's Me</h3>
+    <p>A personal journal for one line a day on what got better since yesterday.
+    Career, body, mind, money — one box is enough to save.</p>
+    <p>Records stay on the user's phone. There is no account and no server, and the
+    app makes no network requests, so every feature works in airplane mode.</p>
+    <p class="status">Preparing for release on iOS and Android</p>
+    <p><a href="./privacy/">Privacy policy</a> · <a href="./support/">Support</a></p>
+  </div>
+</div>
+
+<h2>Company details</h2>
+
+<table class="info">
+  <tbody>
+    <tr><th>Legal name</th><td><mark class="todo">FILL IN — English legal name</mark></td></tr>
+    <tr><th>Representative</th><td><mark class="todo">채워주세요 — 대표자 이름</mark></td></tr>
+    <tr><th>Business registration</th><td><mark class="todo">채워주세요 — 사업자등록번호</mark></td></tr>
+    <tr><th>Address</th><td><mark class="todo">FILL IN — business address in English</mark></td></tr>
+    <tr><th>Founded</th><td><mark class="todo">채워주세요 — 설립 연도</mark></td></tr>
+    <tr><th>Contact</th><td>support@versova.dev</td></tr>
+  </tbody>
+</table>
+
+  <footer>
+    <p>어제의 나 · support@versova.dev</p>
+  </footer>
+</div>
+</body>
+</html>
