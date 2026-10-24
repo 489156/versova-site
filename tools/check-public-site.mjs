@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 const root = resolve(process.argv[2] || 'apps/yesterdays-me/site');
 const manifest = JSON.parse(readFileSync(join(root,'publication-manifest.json'),'utf8'));
-assert.equal(manifest.identityVersion,'2026.10');
+assert.equal(manifest.identityVersion,'2026.10.24');
 const sha = value => createHash('sha256').update(value).digest('hex');
 const entries = Object.entries(manifest.files);
 for (const [path, hash] of entries) {
@@ -12,7 +12,9 @@ for (const [path, hash] of entries) {
  assert.equal(sha(readFileSync(join(root,path))),hash,`publication drift: ${path}`);
  if (!path.endsWith('.html')) continue;
  const html = readFileSync(join(root,path),'utf8');
- assert(html.includes('545-10-02626') && html.includes('versova1128@gmail.com'),`missing public identity: ${path}`);
+ assert(html.includes('545-10-02626') && html.includes('VERSOVA'),`missing public identity: ${path}`);
+ assert(!/mailto:|tel:|Individual business|개인사업자|대표자|사업장 주소/i.test(html), `personal/business details outside publication allowlist: ${path}`);
+ assert(!/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(html),`email exposure: ${path}`);
  assert(!/support@versova\.dev|Versova Holdings|Versova Group|오류 기록|error log/i.test(html),`unsupported public claim: ${path}`);
  assert(html.includes('rel="canonical"') && html.includes('name="viewport"'));
  for (const [,url] of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
