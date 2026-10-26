@@ -27,41 +27,141 @@
  const root = document.getElementById('ym-mvp-root');
  if (!root) return;
 
- const STORAGE_KEY = 'yesterdays-me.mvp.records.v2';
- const DRAFT_KEY = 'yesterdays-me.mvp.drafts.v1';
- const SEEDED_KEY = 'yesterdays-me.mvp.seeded.v1';
+ const STORAGE_KEY = 'yesterdays-me.mvp.records.v3';
+ const DRAFT_KEY = 'yesterdays-me.mvp.drafts.v2';
+ const SEEDED_KEY = 'yesterdays-me.mvp.seeded.v2';
 
  const AXES = [
-  { key: 'career', ko: '커리어', en: 'Career', color: '#3B82F6' },
-  { key: 'physical', ko: '신체', en: 'Body', color: '#F97316' },
-  { key: 'emotional', ko: '정서', en: 'Mind', color: '#A855F7' },
-  { key: 'financial', ko: '자산', en: 'Money', color: '#CA8A04' }
+  { key: 'career', ko: '커리어', en: 'Career', eqKo: '커리어 균형', eqEn: 'Career Equilibrium', color: '#3B82F6' },
+  { key: 'physical', ko: '신체', en: 'Body', eqKo: '신체 균형', eqEn: 'Physical Equilibrium', color: '#F97316' },
+  { key: 'emotional', ko: '정서', en: 'Mind', eqKo: '정서·관계 균형', eqEn: 'Relational Equilibrium', color: '#A855F7' },
+  { key: 'financial', ko: '자산', en: 'Money', eqKo: '자산 균형', eqEn: 'Financial Equilibrium', color: '#CA8A04' }
  ];
 
  const QUESTIONS = [
+  // 1. Career (Work & Growth Equilibrium)
+  {
+   key: 'careerDevelopment',
+   axis: 'career',
+   polarity: 'positive',
+   ko: '오늘 내 커리어와 역량을 키우거나 기록·계획하는 시간을 5분 이상 가졌나요?',
+   en: 'Did you spend at least 5 minutes growing, logging, or planning your career and skills today?',
+   shortKo: '커리어 발전 5분',
+   shortEn: '5m Career Growth',
+   color: '#3B82F6'
+  },
+  {
+   key: 'workInnovation',
+   axis: 'career',
+   polarity: 'positive',
+   ko: '오늘 직무에서 새로운 일을 배우고 해내거나 기존 업무 방식을 더 효율적으로 바꿨나요?',
+   en: 'Did you learn or take on new work, or make an existing workflow more efficient today?',
+   shortKo: '새 업무·효율 개선',
+   shortEn: 'Workflow Innovation',
+   color: '#3B82F6'
+  },
+  {
+   key: 'workMistake',
+   axis: 'career',
+   polarity: 'friction',
+   ko: '오늘 업무에서 실수를 하거나 동료와 협업·소통이 어긋난 일이 있었나요?',
+   en: 'Did you make a work mistake or run into a collaboration or communication breakdown today?',
+   shortKo: '업무 실수·소통 마찰',
+   shortEn: 'Work or Sync Friction',
+   color: '#EF4444'
+  },
+  // 2. Physical (Body & Vitality Equilibrium)
+  {
+   key: 'physicalActivity',
+   axis: 'physical',
+   polarity: 'positive',
+   ko: '오늘 유산소·근력 운동이나 산책·스트레칭 같은 가벼운 신체 활동을 했나요?',
+   en: 'Did you do cardio, strength training, or light movement like walking or stretching today?',
+   shortKo: '운동·신체 활동',
+   shortEn: 'Exercise & Movement',
+   color: '#F97316'
+  },
+  {
+   key: 'waterIntake',
+   axis: 'physical',
+   polarity: 'positive',
+   ko: '오늘 하루 동안 물을 충분히 마셨나요?',
+   en: 'Did you drink enough water throughout the day today?',
+   shortKo: '충분한 수분 보충',
+   shortEn: 'Enough Water',
+   color: '#F97316'
+  },
+  {
+   key: 'dietSleepStrain',
+   axis: 'physical',
+   polarity: 'friction',
+   ko: '오늘 과식·야식·지나친 소식을 하거나 어제 너무 늦게 잠들어 몸에 무리가 갔나요?',
+   en: 'Did you overeat, eat late at night, undereat, or go to sleep too late last night?',
+   shortKo: '식습관·수면 무리',
+   shortEn: 'Diet or Sleep Strain',
+   color: '#EF4444'
+  },
+  // 3. Emotional (Relational & Emotional Equilibrium)
+  {
+   key: 'complimentedSomeone',
+   axis: 'emotional',
+   polarity: 'positive',
+   ko: '오늘 누군가를 칭찬하거나 기분 좋게 해준 일이 있나요?',
+   en: 'Did you compliment someone or do something to make someone feel good today?',
+   shortKo: '칭찬과 다정함',
+   shortEn: 'Compliment or Kindness',
+   color: '#4CAF50'
+  },
   {
    key: 'emotionalReaction',
+   axis: 'emotional',
+   polarity: 'friction',
    ko: '오늘 누군가에게 감정적인 반응을 보였나요?',
    en: 'Did you have an emotional reaction to someone today?',
-   shortKo: '감정적 반응',
+   shortKo: '감정 반응',
    shortEn: 'Emotional Reaction',
    color: '#F97316'
   },
   {
    key: 'emotionallyHurt',
+   axis: 'emotional',
+   polarity: 'friction',
    ko: '오늘 누군가에게 감정적으로 상처를 받았나요?',
    en: 'Were you emotionally hurt by someone today?',
-   shortKo: '감정적 상처',
+   shortKo: '마음의 상처',
    shortEn: 'Emotionally Hurt',
    color: '#A855F7'
   },
+  // 4. Financial (Money & Mindful Spending Equilibrium)
   {
-   key: 'complimentedSomeone',
-   ko: '오늘 누군가를 칭찬하거나 기분 좋게 해준 일이 있나요?',
-   en: 'Did you compliment someone or do something to make someone feel good today?',
-   shortKo: '칭찬 · 기분 좋게 함',
-   shortEn: 'Compliment / Kindness',
-   color: '#4CAF50'
+   key: 'assetGrowth',
+   axis: 'financial',
+   polarity: 'positive',
+   ko: '오늘 저축·투자·수입 만들기처럼 자산을 모으고 불리는 행동을 했나요?',
+   en: 'Did you take action to build or grow your assets through saving, investing, or earning today?',
+   shortKo: '자산 확보·증식',
+   shortEn: 'Asset Building',
+   color: '#CA8A04'
+  },
+  {
+   key: 'assetPlanning',
+   axis: 'financial',
+   polarity: 'positive',
+   ko: '오늘 단기·장기 자산 계획을 세우고 점검하거나 계획대로 실천했나요?',
+   en: 'Did you set, review, or follow through on your short- or long-term financial plan today?',
+   shortKo: '자산 계획·실천',
+   shortEn: 'Financial Plan Check',
+   color: '#CA8A04'
+  },
+  {
+   key: 'impulseSpending',
+   axis: 'financial',
+   polarity: 'friction',
+   ko: '오늘 계획에 없던 충동구매나 기분 전환용 지출을 했나요?',
+   en: 'Did you make an unplanned impulse purchase or spend money just to lift your mood today?',
+   shortKo: '충동·기분 지출',
+   shortEn: 'Impulse Spending',
+   color: '#EF4444'
   }
  ];
 
@@ -83,11 +183,13 @@
  };
  const todayIso = () => toIso(new Date());
 
- const emptyReflections = () => ({
-  emotionalReaction: { answer: null, note: '' },
-  emotionallyHurt: { answer: null, note: '' },
-  complimentedSomeone: { answer: null, note: '' }
- });
+ const emptyReflections = () => {
+  const out = {};
+  for (const q of QUESTIONS) {
+   out[q.key] = { answer: null, note: '' };
+  }
+  return out;
+ };
 
  const normalizeEntry = raw => {
   if (!raw || typeof raw !== 'object') return { answer: null, note: '' };
@@ -98,6 +200,10 @@
 
  const normalizeRecord = (date, raw = {}) => {
   const refs = raw.reflections || {};
+  const normalizedRefs = {};
+  for (const q of QUESTIONS) {
+   normalizedRefs[q.key] = normalizeEntry(refs[q.key]);
+  }
   return {
    date,
    career: String(raw.career || '').trim().slice(0, 200),
@@ -105,11 +211,7 @@
    emotional: String(raw.emotional || '').trim().slice(0, 200),
    financial: String(raw.financial || '').trim().slice(0, 200),
    financialCategory: raw.financial ? (raw.financialCategory || 'SAVINGS') : 'SAVINGS',
-   reflections: {
-    emotionalReaction: normalizeEntry(refs.emotionalReaction),
-    emotionallyHurt: normalizeEntry(refs.emotionallyHurt),
-    complimentedSomeone: normalizeEntry(refs.complimentedSomeone)
-   },
+   reflections: normalizedRefs,
    updatedAt: raw.updatedAt || new Date().toISOString()
   };
  };
@@ -130,7 +232,7 @@
 
  const loadRecords = () => {
   try {
-   const raw = localStorage.getItem(STORAGE_KEY);
+   const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('yesterdays-me.mvp.records.v2');
    if (!raw) return {};
    const parsed = JSON.parse(raw);
    const out = {};
@@ -157,17 +259,17 @@
  const buildSeedRecords = daysCount => {
   const t = todayIso();
   const careerSamples = [
-   '디자인 시스템 토큰 정리 및 PR 배포 완료',
+   '디자인 시스템 토큰 정리 및 PR 배포 마무리',
    '신규 MVP 아키텍처 문서 초안 작성 및 검토',
    '코드 리뷰 3건 진행하고 핵심 테스트 보강',
    '주간 스프린트 우선순위 재조정 및 마일스톤 점검',
    '클라이언트 상태 관리 로직 리팩터링 마무리',
-   '성능 병목 구간 프로파일링 및 렌더링 최적화',
+   '성능 병목 구간 프로파일링 및 렌더링 개선',
    '릴리스 체크리스트 자동화 스크립트 작성'
   ];
   const physicalSamples = [
    '아침 러닝 5km 가볍게 완주하고 스트레칭 15분',
-   '점심 산책 30분, 물 2리터 마시기 실천',
+   '점심 산책 30분, 하루 동안 물 2리터 마시기 실천',
    '저녁 코어 운동 25분 및 11시 반 이전 취침',
    '계단 오르기 및 가공식품 줄이기 실천',
    '하체 근력 운동 40분 후 단백질 식단 챙김',
@@ -178,39 +280,21 @@
    '저녁에 스마트폰을 내려놓고 20분 동안 독서하며 휴식',
    '복잡한 생각을 노트에 세 줄로 적으며 마음 정리',
    '불안한 감정이 올라올 때 창밖을 보며 5분 명상',
-   '완벽주의를 내려놓고 오늘 끝낸 일 세 가지에 집중함'
+   '문서를 꼼꼼히 챙겨 준 동료에게 고맙다고 먼저 인사함'
   ];
   const financialSamples = [
    { text: '월급날 정기 적금 30만 원 자동이체 완료', cat: 'SAVINGS' },
-   { text: '불필요한 구독 서비스 2건 해지해 고정 지출 절감', cat: 'EXPENSE_REDUCTION' },
+   { text: '안 쓰는 구독 서비스 2건 해지해 고정 지출 절감', cat: 'EXPENSE_REDUCTION' },
    { text: '글로벌 ETF 정기 분할 매수 및 포트폴리오 점검', cat: 'INVESTMENT' },
    { text: '배달 음식 대신 집밥으로 저녁 해결해 외식비 절약', cat: 'EXPENSE_REDUCTION' },
    { text: '사이드 프로젝트 정산금 입금 확인 및 비상금 통장 이체', cat: 'INCOME' }
   ];
-  const reactionNotes = [
-   '일정 변경 논의 중 목소리가 조금 빨라졌지만 곧 수습했어요',
-   '반복된 질문에 순간 답답함을 느껴 표정이 굳어졌어요',
-   '예상치 못한 피드백에 방어적으로 대답할 뻔했어요'
-  ];
-  const hurtNotes = [
-   '가볍게 던진 동료의 말 한마디가 저녁까지 마음에 남았어요',
-   '메시지 답장이 늦어져 혼자 서운함을 느꼈어요'
-  ];
-  const complimentNotes = [
-   '꼼꼼하게 문서를 정리해 준 동료에게 고맙다고 먼저 전했어요',
-   '가족에게 오늘 저녁 식사가 정말 맛있었다고 따뜻하게 말했어요',
-   '후배의 발표 자료가 명확해서 이해하기 쉬웠다고 칭찬했어요',
-   '카페 직원분께 밝게 인사하고 좋은 하루 보내시라고 전했어요'
-  ];
 
   const seeded = {};
   for (let i = 0; i < daysCount; i++) {
-   if (i % 9 === 5) continue; // realistic occasional rest day
+   if (i % 9 === 5) continue;
    const date = shiftIso(t, -i);
    const fin = financialSamples[i % financialSamples.length];
-   const hasReaction = i % 4 === 1;
-   const hasHurt = i % 6 === 2;
-   const hasCompliment = i % 2 === 0 || i % 3 === 0;
    seeded[date] = normalizeRecord(date, {
     career: careerSamples[i % careerSamples.length],
     physical: i % 5 === 3 ? '' : physicalSamples[i % physicalSamples.length],
@@ -218,18 +302,18 @@
     financial: i % 4 === 2 ? '' : fin.text,
     financialCategory: fin.cat,
     reflections: {
-     emotionalReaction: {
-      answer: hasReaction,
-      note: hasReaction ? reactionNotes[i % reactionNotes.length] : ''
-     },
-     emotionallyHurt: {
-      answer: hasHurt,
-      note: hasHurt ? hurtNotes[i % hurtNotes.length] : ''
-     },
-     complimentedSomeone: {
-      answer: hasCompliment,
-      note: hasCompliment ? complimentNotes[i % complimentNotes.length] : ''
-     }
+     careerDevelopment: { answer: i % 2 === 0 || i % 3 === 0, note: '' },
+     workInnovation: { answer: i % 3 !== 1, note: '' },
+     workMistake: { answer: i % 6 === 2, note: '' },
+     physicalActivity: { answer: i % 2 === 0, note: '' },
+     waterIntake: { answer: i % 4 !== 3, note: '' },
+     dietSleepStrain: { answer: i % 5 === 2, note: '' },
+     complimentedSomeone: { answer: i % 2 === 0 || i % 3 === 0, note: '' },
+     emotionalReaction: { answer: i % 4 === 1, note: '' },
+     emotionallyHurt: { answer: i % 6 === 2, note: '' },
+     assetGrowth: { answer: i % 3 !== 2, note: '' },
+     assetPlanning: { answer: i % 2 === 0, note: '' },
+     impulseSpending: { answer: i % 5 === 3, note: '' }
     },
     updatedAt: new Date(Date.now() - i * 86400000).toISOString()
    });
@@ -307,18 +391,13 @@
    if (entry.answer !== null) refAnswered++;
    const yesBtn = row.querySelector('[data-q-ans="yes"]');
    const noBtn = row.querySelector('[data-q-ans="no"]');
-   const noteWrap = row.querySelector('.ym-note-wrap');
-   const noteInput = row.querySelector('.ym-q-note');
 
    yesBtn?.classList.remove('is-yes', 'is-no');
    noBtn?.classList.remove('is-yes', 'is-no');
    if (entry.answer === true) yesBtn?.classList.add('is-yes');
    if (entry.answer === false) noBtn?.classList.add('is-no');
-
-   if (noteWrap) noteWrap.hidden = entry.answer !== true;
-   if (noteInput && noteInput.value !== entry.note) noteInput.value = entry.note || '';
   }
-  if (refProgressEl) refProgressEl.textContent = `${refAnswered}/3`;
+  if (refProgressEl) refProgressEl.textContent = `${refAnswered}/${QUESTIONS.length}`;
 
   let axisFilled = 0;
   for (const a of AXES) {
@@ -344,24 +423,26 @@
   const yRec = records[yDate];
   if (yesterdayPeekEl) {
    if (!yRec || !hasRecordContent(yRec)) {
-    yesterdayPeekEl.innerHTML = `<div class="ym-empty">${dual('어제 저장된 기록이 아직 없어요. 오늘 한 줄부터 가볍게 시작해 보세요.', 'No saved record for yesterday yet. Start with one line today.')}</div>`;
+    yesterdayPeekEl.innerHTML = `<div class="ym-empty">${dual('어제 저장된 기록이 아직 없어요. 오늘 루틴 체크나 한 줄부터 가볍게 시작해 보세요.', 'No saved record for yesterday yet. Start with a routine check-in or one line today.')}</div>`;
    } else {
-    const qBadges = QUESTIONS.map(q => {
-     const ans = yRec.reflections?.[q.key]?.answer;
-     if (ans === null || ans === undefined) return '';
-     const badgeCls = ans ? 'is-yes' : 'is-no';
-     const ansLabel = ans ? dual('예', 'Yes') : dual('아니오', 'No');
-     const noteText = ans && yRec.reflections?.[q.key]?.note ? ` — ${esc(yRec.reflections[q.key].note)}` : '';
-     return `<div style="margin-bottom:8px;font-size:13px"><span class="ym-pill ${badgeCls}" style="min-height:24px;padding:2px 8px;margin-right:6px">${ansLabel}</span><strong>${dual(q.shortKo, q.shortEn)}</strong><span style="color:var(--mvp-muted)">${noteText}</span></div>`;
-    }).join('');
-
-    const axisRows = AXES.map(a => {
+    const axisBlocks = AXES.map(a => {
      const text = yRec[a.key];
-     if (!text) return '';
-     return `<div style="padding:8px 0;border-top:1px solid var(--mvp-line);font-size:13px"><span class="ym-dot" style="background:${a.color};display:inline-block;margin-right:6px"></span><strong>${dual(a.ko, a.en)}</strong>: ${esc(text)}</div>`;
+     const axisQs = QUESTIONS.filter(q => q.axis === a.key);
+     const qChips = axisQs.map(q => {
+      const ans = yRec.reflections?.[q.key]?.answer;
+      if (ans === null || ans === undefined) return '';
+      const cls = ans ? 'is-yes' : 'is-no';
+      return `<span class="ym-pill ${cls}" style="min-height:20px;padding:1px 7px;font-size:11px;margin-right:4px">${dual(q.shortKo, q.shortEn)}: ${ans ? dual('예', 'Y') : dual('아니오', 'N')}</span>`;
+     }).filter(Boolean).join('');
+
+     if (!text && !qChips) return '';
+     return `<div style="padding:10px 0;border-top:1px solid var(--mvp-line);font-size:13px">
+      <div><span class="ym-dot" style="background:${a.color};display:inline-block;margin-right:6px"></span><strong>${dual(a.ko, a.en)}</strong>${text ? `: ${esc(text)}` : ''}</div>
+      ${qChips ? `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${qChips}</div>` : ''}
+     </div>`;
     }).join('');
 
-    yesterdayPeekEl.innerHTML = `<div>${qBadges || ''}${axisRows || ''}</div>`;
+    yesterdayPeekEl.innerHTML = `<div>${axisBlocks}</div>`;
    }
   }
 
@@ -373,14 +454,15 @@
   if (todaySnapshotEl) {
    const totalChars = scoreRecord(currentDraft, 'all');
    const answeredCount = QUESTIONS.filter(q => currentDraft.reflections?.[q.key]?.answer !== null).length;
-   const yesCount = QUESTIONS.filter(q => currentDraft.reflections?.[q.key]?.answer === true).length;
+   const posYes = QUESTIONS.filter(q => q.polarity === 'positive' && currentDraft.reflections?.[q.key]?.answer === true).length;
+   const fricYes = QUESTIONS.filter(q => q.polarity === 'friction' && currentDraft.reflections?.[q.key]?.answer === true).length;
    const filledAxes = AXES.filter(a => (currentDraft[a.key] || '').trim().length > 0).length;
 
    todaySnapshotEl.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
      <div style="padding:12px;border:1px solid var(--mvp-line);background:var(--mvp-surface)">
-      <div class="micro">${dual('관계 3문항 응답', '3 Qs Answered')}</div>
-      <div style="font-size:22px;font-family:var(--serif);margin-top:4px">${answeredCount}/3 <span class="micro">(${dual(`예 ${yesCount}`, `Yes ${yesCount}`)})</span></div>
+      <div class="micro">${dual('12개 루틴 점검', '12 Routines')}</div>
+      <div style="font-size:22px;font-family:var(--serif);margin-top:4px">${answeredCount}/12 <span class="micro">(${dual(`긍정 ${posYes} · 마찰 ${fricYes}`, `+${posYes} / -${fricYes}`)})</span></div>
      </div>
      <div style="padding:12px;border:1px solid var(--mvp-line);background:var(--mvp-surface)">
       <div class="micro">${dual('작성한 축', 'Filled Axes')}</div>
@@ -394,9 +476,11 @@
     <div>
      ${AXES.map(a => {
       const len = (currentDraft[a.key] || '').trim().length;
+      const axisQs = QUESTIONS.filter(q => q.axis === a.key);
+      const axisAns = axisQs.filter(q => currentDraft.reflections?.[q.key]?.answer !== null).length;
       const pct = Math.min(100, Math.round((len / 200) * 100));
       return `<div class="ym-bar-row">
-       <div class="ym-bar-meta"><span>${dual(a.ko, a.en)}</span><span class="ym-counter">${len}/200</span></div>
+       <div class="ym-bar-meta"><span>${dual(a.ko, a.en)} <span class="micro">(${dual(`루틴 ${axisAns}/3`, `Routines ${axisAns}/3`)})</span></span><span class="ym-counter">${len}/200</span></div>
        <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${pct}%;background:${a.color}"></div></div>
       </div>`;
      }).join('')}
@@ -415,33 +499,23 @@
   syncFormFromDraft();
  };
 
- // Question Yes/No and Note handlers
+ // Question Yes/No handlers
  for (const q of QUESTIONS) {
   const row = root.querySelector(`.ym-q-row[data-q-key="${q.key}"]`);
   if (!row) continue;
   const yesBtn = row.querySelector('[data-q-ans="yes"]');
   const noBtn = row.querySelector('[data-q-ans="no"]');
-  const noteInput = row.querySelector('.ym-q-note');
 
   yesBtn?.addEventListener('click', () => {
    const prev = currentDraft.reflections[q.key].answer;
    currentDraft.reflections[q.key].answer = prev === true ? null : true;
-   if (currentDraft.reflections[q.key].answer !== true) {
-    currentDraft.reflections[q.key].note = '';
-   }
    syncFormFromDraft();
   });
 
   noBtn?.addEventListener('click', () => {
    const prev = currentDraft.reflections[q.key].answer;
    currentDraft.reflections[q.key].answer = prev === false ? null : false;
-   currentDraft.reflections[q.key].note = '';
    syncFormFromDraft();
-  });
-
-  noteInput?.addEventListener('input', e => {
-   currentDraft.reflections[q.key].note = e.target.value.slice(0, 200);
-   renderRecordSidebars();
   });
  }
 
@@ -477,7 +551,7 @@
   saveRecords(records);
   loadDateIntoEditor(activeDate);
   renderAllPanels();
-  showToast('최근 45일 샘플 기록을 불러왔어요. 대시보드와 RSI 탭을 확인해 보세요!', 'Loaded 45 days of sample records. Explore Dashboard & Change Signals!');
+  showToast('최근 45일 샘플 기록을 채웠어요. 대시보드와 나의 변화 탭을 확인해 보세요!', 'Loaded 45 days of sample records. Explore Dashboard & Change Signals!');
  });
 
  btnTheme?.addEventListener('click', () => {
@@ -493,7 +567,7 @@
  btnSave?.addEventListener('click', () => {
   const norm = normalizeRecord(activeDate, currentDraft);
   if (!hasRecordContent(norm)) {
-   showToast('최소 1개 이상의 관계 질문이나 축을 입력해 주세요.', 'Please answer at least 1 relational question or 1 axis before saving.');
+   showToast('루틴 문항이나 한 줄 기록 중 하나라도 입력해 주세요.', 'Please answer at least one routine question or one axis line before saving.');
    return;
   }
   records[activeDate] = norm;
@@ -600,7 +674,6 @@
   const totalScore = datesInRange.reduce((acc, d) => acc + scoreRecord(records[d], activeAxis), 0);
   const avgScore = Math.round((totalScore / daysCount) * 10) / 10;
 
-  // Axis totals across period
   const axisTotals = AXES.map(a => ({
    ...a,
    score: datesInRange.reduce((acc, d) => acc + scoreAxis(records[d], a.key), 0),
@@ -637,42 +710,36 @@
    refPeriodSubEl.innerHTML = `${esc(startIso)} → ${esc(activeDate)} (${daysCount}d)`;
   }
 
-  // Render 3 Core Relational Questions Trend
+  // Render 4-Axis Daily Routine Equilibrium Trend (filtered by activeAxis)
   if (refTrendBodyEl) {
-   const rowsHtml = QUESTIONS.map(q => {
+   const visibleQuestions = activeAxis === 'all'
+    ? QUESTIONS
+    : QUESTIONS.filter(q => q.axis === activeAxis);
+
+   const rowsHtml = visibleQuestions.map(q => {
     let yesCount = 0;
     let noCount = 0;
-    const recentNotes = [];
-    for (const d of datesInRange.slice().reverse()) {
+    for (const d of datesInRange) {
      const entry = records[d]?.reflections?.[q.key];
      if (!entry) continue;
-     if (entry.answer === true) {
-      yesCount++;
-      if (entry.note && recentNotes.length < 2) {
-       recentNotes.push({ date: d, note: entry.note });
-      }
-     } else if (entry.answer === false) {
-      noCount++;
-     }
+     if (entry.answer === true) yesCount++;
+     else if (entry.answer === false) noCount++;
     }
     const answered = yesCount + noCount;
     const yesPct = answered > 0 ? Math.round((yesCount / answered) * 100) : 0;
+    const kindBadge = q.polarity === 'positive'
+     ? `<span class="micro" style="color:var(--mvp-accent);margin-right:6px">[${dual('긍정', 'POS')}]</span>`
+     : `<span class="micro" style="color:#EF4444;margin-right:6px">[${dual('마찰', 'FRIC')}]</span>`;
 
     return `
-     <div style="padding:14px 0;border-bottom:1px solid var(--mvp-line)">
+     <div style="padding:10px 0;border-bottom:1px solid var(--mvp-line)">
       <div class="ym-bar-meta">
-       <span><span class="ym-dot" style="background:${q.color};display:inline-block;margin-right:6px"></span><strong>${dual(q.ko, q.en)}</strong></span>
-       <span class="ym-counter">${dual(`예 ${yesCount}회 / 응답 ${answered}일 (${yesPct}%)`, `Yes ${yesCount} / ${answered}d (${yesPct}%)`)}</span>
+       <span><span class="ym-dot" style="background:${q.color};display:inline-block;margin-right:6px"></span>${kindBadge}<strong>${dual(q.shortKo, q.shortEn)}</strong></span>
+       <span class="ym-counter">${dual(`예 ${yesCount}일 / 응답 ${answered}일 (${yesPct}%)`, `Yes ${yesCount}d / ${answered}d (${yesPct}%)`)}</span>
       </div>
-      <div class="ym-bar-track" style="margin:8px 0">
+      <div class="ym-bar-track" style="margin-top:6px">
        <div class="ym-bar-fill" style="width:${yesPct}%;background:${q.color}"></div>
       </div>
-      ${recentNotes.length > 0
-       ? `<div style="margin-top:6px;display:flex;flex-direction:column;gap:4px">
-           ${recentNotes.map(n => `<div style="font-size:12px;color:var(--mvp-muted)"><span class="ym-counter" style="margin-right:6px">${esc(n.date.slice(5))}</span>“${esc(n.note)}”</div>`).join('')}
-          </div>`
-       : `<div style="font-size:12px;color:var(--mvp-muted)">${dual('이 기간에 남긴 한 줄 메모가 아직 없어요.', 'No one-line notes recorded in this period yet.')}</div>`
-      }
      </div>
     `;
    }).join('');
@@ -680,7 +747,6 @@
    refTrendBodyEl.innerHTML = rowsHtml;
   }
 
-  // Render SVG Chart for Selected Period
   if (chartSubEl) {
    const axisLabel = activeAxis === 'all'
     ? dual('전체 4축 합산', 'All 4 Axes Combined')
@@ -725,7 +791,6 @@
 
    chartContainerEl.innerHTML = `<div style="padding-top:6px">${barsHtml}</div>`;
   } else if (activePeriod === 'week') {
-   // 7-day SVG comparison chart (This 7 days vs Previous 7 days)
    const thisWeekScores = [];
    const prevWeekScores = [];
    const labels = [];
@@ -783,7 +848,6 @@
     </div>
    `;
   } else if (activePeriod === 'month') {
-   // 30-day interactive bar chart
    const scores30 = datesInRange.map(d => ({ date: d, score: scoreRecord(records[d], activeAxis) }));
    const max30 = Math.max(100, ...scores30.map(s => s.score));
    const w = 540;
@@ -814,10 +878,9 @@
      <text x="${padL}" y="${h - 8}" font-size="10" fill="var(--mvp-muted)" font-family="monospace">${datesInRange[0].slice(5)}</text>
      <text x="${w - padR}" y="${h - 8}" text-anchor="end" font-size="10" fill="var(--mvp-muted)" font-family="monospace">${activeDate.slice(5)}</text>
     </svg>
-    <p style="font-size:12px;color:var(--mvp-muted);margin-top:8px">${dual('막대를 클릭하면 해당 날짜의 기록 편집 화면으로 바로 이동해요.', 'Click any bar to jump directly to that day in the Record editor.')}</p>
+    <p style="font-size:12px;color:var(--mvp-muted);margin-top:8px">${dual('막대를 누르면 그날 기록 편집 화면으로 바로 이동해요.', 'Click any bar to jump directly to that day in the Record editor.')}</p>
    `;
   } else {
-   // Year in Pixels (last 182 days compact heatmap + summary)
    const heatDays = 182;
    const cells = [];
    for (let i = heatDays - 1; i >= 0; i--) {
@@ -863,13 +926,12 @@
   }
  };
 
- // Signals (RSI Proxy) Renderer
+ // Signals (RSI Proxy + 4-Axis Equilibrium Matrix) Renderer
  const renderSignals = () => {
   if (!signalsContentEl) return;
   const allDates = Object.keys(records).filter(d => hasRecordContent(records[d])).sort();
   const totalDays = allDates.length;
 
-  // 1. Return Time after a break
   const gaps = [];
   for (let i = 1; i < allDates.length; i++) {
    const d0 = parseIso(allDates[i - 1]);
@@ -881,7 +943,6 @@
    ? Math.round((gaps.reduce((a, b) => a + b, 0) / gaps.length) * 10) / 10
    : (totalDays > 1 ? 0 : null);
 
-  // 2. 14d Retention & Novelty
   let active14 = 0;
   const uniquePhrases = new Set();
   let totalPhrases = 0;
@@ -902,7 +963,6 @@
   const retentionPct = Math.round((active14 / 14) * 100);
   const noveltyPct = totalPhrases > 0 ? Math.round((uniquePhrases.size / totalPhrases) * 100) : 0;
 
-  // 3. 4-Axis Balance (Shannon entropy normalized across 30d)
   const axisCounts30 = AXES.map(a => {
    let cnt = 0;
    for (let i = 0; i < 30; i++) {
@@ -924,7 +984,6 @@
    balancePct = Math.round((entropy / 2) * 100);
   }
 
-  // 4. Weekly Pace & Acceleration
   let thisWeekTotal = 0;
   let lastWeekTotal = 0;
   for (let i = 0; i < 7; i++) {
@@ -934,24 +993,47 @@
   const accelDelta = thisWeekTotal - lastWeekTotal;
   const accelSign = accelDelta >= 0 ? `+${accelDelta}` : `${accelDelta}`;
 
-  // 5. Relational Check-in Ratio (Compliments vs Emotional Friction)
-  let reactYes = 0;
-  let hurtYes = 0;
-  let compYes = 0;
-  for (const d of allDates) {
-   const rf = records[d]?.reflections;
-   if (rf?.emotionalReaction?.answer === true) reactYes++;
-   if (rf?.emotionallyHurt?.answer === true) hurtYes++;
-   if (rf?.complimentedSomeone?.answer === true) compYes++;
-  }
+  // Compute 4-Axis Equilibrium cards
+  const eqCardsHtml = AXES.map((a, idx) => {
+   const axisQs = QUESTIONS.filter(q => q.axis === a.key);
+   const rows = axisQs.map(q => {
+    let yesDays = 0;
+    for (const d of allDates) {
+     if (records[d]?.reflections?.[q.key]?.answer === true) yesDays++;
+    }
+    const pct = totalDays ? Math.min(100, Math.round((yesDays / totalDays) * 100)) : 0;
+    const tag = q.polarity === 'positive'
+     ? `<span class="micro" style="color:var(--mvp-accent);margin-right:4px">[${dual('긍정', 'POS')}]</span>`
+     : `<span class="micro" style="color:#EF4444;margin-right:4px">[${dual('마찰', 'FRIC')}]</span>`;
+    return `
+     <div class="ym-bar-row">
+      <div class="ym-bar-meta"><span>${tag}${dual(q.shortKo, q.shortEn)}</span><span class="ym-counter">${yesDays}d (${pct}%)</span></div>
+      <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${pct}%;background:${q.color}"></div></div>
+     </div>
+    `;
+   }).join('');
+
+   return `
+    <div class="ym-card">
+     <div class="ym-card-header">
+      <div>
+       <span class="eyebrow">0${idx + 1} / ${a.eqEn.toUpperCase()}</span>
+       <h3 class="ym-card-title"><span class="ym-dot" style="background:${a.color};display:inline-block;margin-right:8px"></span>${dual(a.eqKo, a.eqEn)}</h3>
+      </div>
+      <span class="ym-counter">${dual(`30일 한 줄 ${axisCounts30[idx]}일`, `30d text: ${axisCounts30[idx]}d`)}</span>
+     </div>
+     ${rows}
+    </div>
+   `;
+  }).join('');
 
   signalsContentEl.innerHTML = `
    <div class="ym-card" style="margin-bottom:20px">
     <div class="ym-card-header">
      <div>
       <span class="eyebrow">03 / PERSONAL CHANGE SIGNALS (RSI PROXY)</span>
-      <h3 class="ym-card-title">${dual('기록 습관과 관계 에너지의 구조적 변화 신호', 'Structural Change Signals Across Habit & Relationships')}</h3>
-      <p class="ym-card-sub">${dual('단순한 연속 기록 강박 대신, 쉬었다가도 다시 돌아오는 복귀 탄력성과 네 축의 균형을 측정해요.', 'Measures return resilience after breaks, 4-axis balance, and relational warmth rather than fragile streaks.')}</p>
+      <h3 class="ym-card-title">${dual('기록 습관과 네 축의 일일 루틴 균형 신호', 'Structural Change Signals & 4-Axis Equilibrium')}</h3>
+      <p class="ym-card-sub">${dual('단순한 연속 기록 강박 대신, 쉬었다가도 다시 돌아오는 복귀 탄력성과 네 축의 실천·마찰 균형을 함께 살펴봐요.', 'Measures return resilience after breaks and the balance between positive routines and friction across all four axes.')}</p>
      </div>
      <span class="ym-counter">${dual(`누적 기록 ${totalDays}일`, `${totalDays} Total Days`)}</span>
     </div>
@@ -960,7 +1042,7 @@
      <div class="ym-kpi">
       <div class="ym-kpi-label">${dual('01 · 평균 복귀 탄력성', '01 · RETURN RESILIENCE')}</div>
       <div class="ym-kpi-val">${avgReturnDays === null ? '-' : `${avgReturnDays}d`}</div>
-      <div class="ym-kpi-delta">${avgReturnDays === 0 ? dual('공백 없이 꾸준히 이어가는 중', 'Zero gap days between records') : dual(`공백 발생 후 평균 ${avgReturnDays ?? '-'}일 만에 복귀`, `Avg ${avgReturnDays ?? '-'} days to return after a pause`)}</div>
+      <div class="ym-kpi-delta">${avgReturnDays === 0 ? dual('공백 없이 꾸준히 이어가는 중', 'Zero gap days between records') : dual(`공백 뒤 평균 ${avgReturnDays ?? '-'}일 만에 복귀`, `Avg ${avgReturnDays ?? '-'} days to return after a pause`)}</div>
      </div>
      <div class="ym-kpi">
       <div class="ym-kpi-label">${dual('02 · 최근 14일 유지율 · 참신성', '02 · 14D RETENTION · NOVELTY')}</div>
@@ -981,43 +1063,7 @@
    </div>
 
    <div class="ym-grid-2">
-    <div class="ym-card">
-     <div class="ym-card-header">
-      <div>
-       <span class="eyebrow">RELATIONAL EQUILIBRIUM</span>
-       <h3 class="ym-card-title">${dual('마음과 관계 에너지를 돌아보는 신호', 'Relational Energy Balance')}</h3>
-      </div>
-     </div>
-     <div class="ym-bar-row">
-      <div class="ym-bar-meta"><span>${dual('누군가를 칭찬하거나 기분 좋게 해준 날', 'Days you complimented or uplifted someone')}</span><span class="ym-counter">${compYes}d</span></div>
-      <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${totalDays ? Math.min(100, Math.round((compYes / totalDays) * 100)) : 0}%;background:#4CAF50"></div></div>
-     </div>
-     <div class="ym-bar-row">
-      <div class="ym-bar-meta"><span>${dual('누군가에게 감정적인 반응을 보인 날', 'Days with an emotional reaction to someone')}</span><span class="ym-counter">${reactYes}d</span></div>
-      <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${totalDays ? Math.min(100, Math.round((reactYes / totalDays) * 100)) : 0}%;background:#F97316"></div></div>
-     </div>
-     <div class="ym-bar-row">
-      <div class="ym-bar-meta"><span>${dual('누군가에게 감정적으로 상처를 받은 날', 'Days you felt emotionally hurt by someone')}</span><span class="ym-counter">${hurtYes}d</span></div>
-      <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${totalDays ? Math.min(100, Math.round((hurtYes / totalDays) * 100)) : 0}%;background:#A855F7"></div></div>
-     </div>
-    </div>
-
-    <div class="ym-card">
-     <div class="ym-card-header">
-      <div>
-       <span class="eyebrow">30-DAY AXIS COVERAGE</span>
-       <h3 class="ym-card-title">${dual('최근 30일 네 축별 기록 밀도', '30-Day Axis Recording Density')}</h3>
-      </div>
-     </div>
-     ${AXES.map((a, idx) => {
-      const cnt = axisCounts30[idx];
-      const pct = Math.min(100, Math.round((cnt / 30) * 100));
-      return `<div class="ym-bar-row">
-       <div class="ym-bar-meta"><span><span class="ym-dot" style="background:${a.color};display:inline-block;margin-right:6px"></span><strong>${dual(a.ko, a.en)}</strong></span><span class="ym-counter">${cnt}/30d (${pct}%)</span></div>
-       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${pct}%;background:${a.color}"></div></div>
-      </div>`;
-     }).join('')}
-    </div>
+    ${eqCardsHtml}
    </div>
   `;
  };
@@ -1034,15 +1080,14 @@
   const filtered = sortedDates.filter(d => {
    if (!query) return true;
    const r = records[d];
+   const notesHay = QUESTIONS.map(q => r.reflections?.[q.key]?.note || '').join(' ');
    const hay = [
     r.date,
     r.career,
     r.physical,
     r.emotional,
     r.financial,
-    r.reflections?.emotionalReaction?.note || '',
-    r.reflections?.emotionallyHurt?.note || '',
-    r.reflections?.complimentedSomeone?.note || ''
+    notesHay
    ].join(' ').toLowerCase();
    return hay.includes(query);
   });
@@ -1068,14 +1113,6 @@
     return `<div style="font-size:13px;margin-top:4px"><span class="ym-dot" style="background:${a.color};display:inline-block;margin-right:6px"></span><strong>${dual(a.ko, a.en)}:</strong> ${esc(r[a.key])}</div>`;
    }).join('');
 
-   const notes = QUESTIONS.map(q => {
-    const entry = r.reflections?.[q.key];
-    if (entry?.answer === true && entry.note) {
-     return `<div style="font-size:12px;color:var(--mvp-muted);margin-top:3px">↳ ${dual(q.shortKo, q.shortEn)}: “${esc(entry.note)}”</div>`;
-    }
-    return '';
-   }).join('');
-
    return `
     <div class="ym-history-item" data-open-date="${esc(d)}">
      <div class="ym-history-head">
@@ -1087,7 +1124,6 @@
      </div>
      ${qPills ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">${qPills}</div>` : ''}
      ${lines}
-     ${notes}
     </div>
    `;
   }).join('');
@@ -1146,12 +1182,7 @@
    'emotional',
    'financial',
    'financialCategory',
-   'emotionalReaction',
-   'emotionalReactionNote',
-   'emotionallyHurt',
-   'emotionallyHurtNote',
-   'complimentedSomeone',
-   'complimentedSomeoneNote',
+   ...QUESTIONS.flatMap(q => [q.key, `${q.key}Note`]),
    'updatedAt'
   ];
   const dates = Object.keys(records).filter(d => hasRecordContent(records[d])).sort();
@@ -1167,12 +1198,10 @@
     csvCell(r.emotional),
     csvCell(r.financial),
     csvCell(r.financial ? r.financialCategory : ''),
-    csvCell(bStr(rf.emotionalReaction?.answer)),
-    csvCell(rf.emotionalReaction?.note || ''),
-    csvCell(bStr(rf.emotionallyHurt?.answer)),
-    csvCell(rf.emotionallyHurt?.note || ''),
-    csvCell(bStr(rf.complimentedSomeone?.answer)),
-    csvCell(rf.complimentedSomeone?.note || ''),
+    ...QUESTIONS.flatMap(q => [
+     csvCell(bStr(rf[q.key]?.answer)),
+     csvCell(rf[q.key]?.note || '')
+    ]),
     csvCell(r.updatedAt)
    ].join(','));
   }
