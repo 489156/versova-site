@@ -1,5 +1,5 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
-import { resolve, join, dirname } from 'node:path';
+import { resolve, join, dirname, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 const root = resolve(process.argv[2] || 'apps/yesterdays-me/site');
@@ -20,7 +20,7 @@ for (const [path, hash] of entries) {
  for (const [,url] of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
   if (/^(?:https?:|mailto:|#)/.test(url)) continue;
   const local = resolve(dirname(join(root,path)),url.split('#')[0]);
-  assert(local === root || local.startsWith(root+'/'),`link escapes project site: ${path} ${url}`);
+  assert(local === root || local.startsWith(root+sep),`link escapes project site: ${path} ${url}`);
   assert(existsSync(local) && (!statSync(local).isDirectory() || existsSync(join(local,'index.html'))),`broken link: ${path} ${url}`);
  }
 }
