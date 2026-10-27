@@ -712,9 +712,84 @@
 
   // Render 4-Axis Daily Routine Equilibrium Trend (filtered by activeAxis)
   if (refTrendBodyEl) {
+   const visibleAxes = activeAxis === 'all' ? AXES : AXES.filter(a => a.key === activeAxis);
    const visibleQuestions = activeAxis === 'all'
     ? QUESTIONS
     : QUESTIONS.filter(q => q.axis === activeAxis);
+
+   // Compute early vs late half positive rate delta & co-occurrence with written lines
+   const midIdx = Math.max(1, Math.floor(datesInRange.length / 2));
+   const earlyDates = datesInRange.slice(0, midIdx);
+   const lateDates = datesInRange.slice(midIdx);
+
+   const calcPosRate = dateList => {
+    let pYes = 0;
+    let pAns = 0;
+    for (const d of dateList) {
+     const r = records[d];
+     if (!r) continue;
+     for (const q of visibleQuestions) {
+      if (q.polarity !== 'positive') continue;
+      const ans = r.reflections?.[q.key]?.answer;
+      if (ans === true) { pYes++; pAns++; }
+      else if (ans === false) { pAns++; }
+     }
+    }
+    return pAns > 0 ? pYes / pAns : 0;
+   };
+
+   const deltaPp = Math.round((calcPosRate(lateDates) - calcPosRate(earlyDates)) * 100);
+   const deltaSign = deltaPp > 0 ? `+${deltaPp}%p` : `${deltaPp}%p`;
+
+   let routineAndTextDays = 0;
+   let posDayScoreSum = 0;
+   let posDayCount = 0;
+   for (const d of datesInRange) {
+    const r = records[d];
+    if (!r) continue;
+    const sc = scoreRecord(r, activeAxis);
+    const hasRef = visibleQuestions.some(q => r.reflections?.[q.key]?.answer !== null && r.reflections?.[q.key]?.answer !== undefined);
+    if (sc > 0 && hasRef) routineAndTextDays++;
+    const hasPosYes = visibleQuestions.some(q => q.polarity === 'positive' && r.reflections?.[q.key]?.answer === true);
+    if (hasPosYes) {
+     posDayScoreSum += sc;
+     posDayCount++;
+    }
+   }
+   const avgPosDayScore = posDayCount > 0 ? Math.round(posDayScoreSum / posDayCount) : 0;
+
+   const axisSummaryHtml = visibleAxes.map(a => {
+    const aQs = QUESTIONS.filter(q => q.axis === a.key);
+    let pYes = 0; let pAns = 0; let fYes = 0; let fAns = 0;
+    for (const d of datesInRange) {
+     const r = records[d];
+     if (!r) continue;
+     for (const q of aQs) {
+      const ans = r.reflections?.[q.key]?.answer;
+      if (ans === true) {
+       if (q.polarity === 'positive') { pYes++; pAns++; } else { fYes++; fAns++; }
+      } else if (ans === false) {
+       if (q.polarity === 'positive') pAns++; else fAns++;
+      }
+     }
+    }
+    const pRate = pAns > 0 ? Math.round((pYes / pAns) * 100) : 0;
+    const fRate = fAns > 0 ? Math.round((fYes / fAns) * 100) : 0;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0">
+     <span><span class="ym-dot" style="background:${a.color};display:inline-block;margin-right:6px"></span><strong>${dual(a.ko, a.en)}</strong></span>
+     <span class="ym-counter">${dual(`긍정 ${pYes}회(${pRate}%) · 마찰 ${fYes}회(${fRate}%)`, `Pos ${pYes}(${pRate}%) · Fric ${fYes}(${fRate}%)`)}</span>
+    </div>`;
+   }).join('');
+
+   const summaryBoxHtml = `
+    <div style="padding:12px;margin-bottom:10px;border:1px solid var(--mvp-line);background:var(--mvp-surface)">
+     ${axisSummaryHtml}
+     <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--mvp-line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:11px;color:var(--mvp-muted)">
+      <span>${dual(`긍정 루틴 추세(후반-전반): ${deltaSign}`, `Positive routine trend (late vs early): ${deltaSign}`)}</span>
+      <span>${dual(`루틴+한 줄 동반 ${routineAndTextDays}일 · 긍정 실천일 평균 ${avgPosDayScore}자`, `Routine + line ${routineAndTextDays}d · Pos days avg ${avgPosDayScore} chars`)}</span>
+     </div>
+    </div>
+   `;
 
    const rowsHtml = visibleQuestions.map(q => {
     let yesCount = 0;
@@ -744,7 +819,7 @@
     `;
    }).join('');
 
-   refTrendBodyEl.innerHTML = rowsHtml;
+   refTrendBodyEl.innerHTML = summaryBoxHtml + rowsHtml;
   }
 
   if (chartSubEl) {
@@ -830,6 +905,28 @@
     return `<text x="${x}" y="${h - 10}" text-anchor="middle" font-size="11" fill="var(--mvp-muted)" font-family="monospace">${lb}</text>`;
    }).join('');
 
+   // Collect recent sentences from this week for Weekly Sentence Reflection
+   const weekSentences = [];
+   const axesToScan = activeAxis === 'all' ? AXES : AXES.filter(a => a.key === activeAxis);
+   for (let i = 0; i < 7; i++) {
+    const d = shiftIso(activeDate, -i);
+    const r = records[d];
+    if (!r) continue;
+    for (const a of axesToScan) {
+     const txt = (r[a.key] || '').trim();
+     if (txt) weekSentences.push({ date: d, axis: a, text: txt });
+    }
+   }
+   const topSentences = weekSentences.slice(0, 3);
+   const weeklySentenceHtml = topSentences.length > 0
+    ? `<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
+       <div class="micro" style="margin-bottom:4px">${dual('이번 주 다시 읽을 한 줄 · 다음 주에도 이어가고 싶은 행동은 무엇인가요?', 'A LINE FROM THIS WEEK TO REVISIT · WHICH ACTION DO YOU WANT TO KEEP GOING NEXT WEEK?')}</div>
+       ${topSentences.map(item => `<div style="padding:7px 10px;margin-top:6px;border:1px solid var(--mvp-line);background:var(--mvp-surface);font-size:12.5px">
+        <span class="ym-dot" style="background:${item.axis.color};display:inline-block;margin-right:6px"></span><strong>${dual(item.axis.ko, item.axis.en)}</strong> <span class="ym-counter">(${esc(item.date.slice(5))})</span> · ${esc(item.text)}
+       </div>`).join('')}
+      </div>`
+    : '';
+
    chartContainerEl.innerHTML = `
     <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;overflow:visible" role="img" aria-label="7-day trend chart">
      <line x1="${padL}" y1="${padT}" x2="${w - padR}" y2="${padT}" stroke="var(--mvp-line)" stroke-dasharray="3 3"/>
@@ -846,6 +943,7 @@
      <span><span style="display:inline-block;width:12px;height:2.5px;background:var(--mvp-accent);vertical-align:middle;margin-right:6px"></span>${dual('최근 7일', 'Current 7 Days')}</span>
      <span><span style="display:inline-block;width:12px;height:2px;background:var(--mvp-muted);vertical-align:middle;margin-right:6px"></span>${dual('직전 7일 (점선)', 'Previous 7 Days (Dashed)')}</span>
     </div>
+    ${weeklySentenceHtml}
    `;
   } else if (activePeriod === 'month') {
    const scores30 = datesInRange.map(d => ({ date: d, score: scoreRecord(records[d], activeAxis) }));
@@ -993,25 +1091,64 @@
   const accelDelta = thisWeekTotal - lastWeekTotal;
   const accelSign = accelDelta >= 0 ? `+${accelDelta}` : `${accelDelta}`;
 
-  // Compute 4-Axis Equilibrium cards
+  // Compute 4-Axis Equilibrium cards & rule-based observations
+  const observations = [];
   const eqCardsHtml = AXES.map((a, idx) => {
    const axisQs = QUESTIONS.filter(q => q.axis === a.key);
+   let posYesTotal = 0;
+   let posAnsTotal = 0;
+   let fricYesTotal = 0;
+   let fricAnsTotal = 0;
+
    const rows = axisQs.map(q => {
     let yesDays = 0;
+    let ansDays = 0;
     for (const d of allDates) {
-     if (records[d]?.reflections?.[q.key]?.answer === true) yesDays++;
+     const ans = records[d]?.reflections?.[q.key]?.answer;
+     if (ans === true) {
+      yesDays++;
+      ansDays++;
+      if (q.polarity === 'positive') { posYesTotal++; posAnsTotal++; }
+      else { fricYesTotal++; fricAnsTotal++; }
+     } else if (ans === false) {
+      ansDays++;
+      if (q.polarity === 'positive') posAnsTotal++;
+      else fricAnsTotal++;
+     }
     }
-    const pct = totalDays ? Math.min(100, Math.round((yesDays / totalDays) * 100)) : 0;
+    const pct = ansDays ? Math.min(100, Math.round((yesDays / ansDays) * 100)) : 0;
     const tag = q.polarity === 'positive'
      ? `<span class="micro" style="color:var(--mvp-accent);margin-right:4px">[${dual('긍정', 'POS')}]</span>`
      : `<span class="micro" style="color:#EF4444;margin-right:4px">[${dual('마찰', 'FRIC')}]</span>`;
     return `
      <div class="ym-bar-row">
-      <div class="ym-bar-meta"><span>${tag}${dual(q.shortKo, q.shortEn)}</span><span class="ym-counter">${yesDays}d (${pct}%)</span></div>
+      <div class="ym-bar-meta"><span>${tag}${dual(q.shortKo, q.shortEn)}</span><span class="ym-counter">${yesDays}/${ansDays}d (${pct}%)</span></div>
       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${pct}%;background:${q.color}"></div></div>
      </div>
     `;
    }).join('');
+
+   const posRate = posAnsTotal > 0 ? Math.round((posYesTotal / posAnsTotal) * 100) : 0;
+   const fricRate = fricAnsTotal > 0 ? Math.round((fricYesTotal / fricAnsTotal) * 100) : 0;
+
+   if (posAnsTotal >= 6 && posRate >= 65) {
+    observations.push({
+     axis: a,
+     ko: `${a.ko} 축에서 긍정 루틴을 ${posYesTotal}회(${posRate}%) 꾸준히 실천했어요.`,
+     en: `Practiced positive routines in ${a.en} ${posYesTotal} times (${posRate}%).`,
+     qKo: '이 루틴이 하루의 다른 축에는 어떤 영향을 주었나요?',
+     qEn: 'How did this routine shape the other parts of your day?'
+    });
+   }
+   if (fricAnsTotal >= 5 && fricRate >= 30) {
+    observations.push({
+     axis: a,
+     ko: `${a.ko} 축에서 마찰·무리 신호가 ${fricYesTotal}회(${fricRate}%) 기록됐어요.`,
+     en: `Noted friction or strain in ${a.en} ${fricYesTotal} times (${fricRate}%).`,
+     qKo: '이 마찰을 줄이려고 내일 바꿀 수 있는 작은 행동은 무엇인가요?',
+     qEn: 'What is one small step tomorrow that could ease this friction?'
+    });
+   }
 
    return `
     <div class="ym-card">
@@ -1019,6 +1156,7 @@
       <div>
        <span class="eyebrow">0${idx + 1} / ${a.eqEn.toUpperCase()}</span>
        <h3 class="ym-card-title"><span class="ym-dot" style="background:${a.color};display:inline-block;margin-right:8px"></span>${dual(a.eqKo, a.eqEn)}</h3>
+       <p class="ym-card-sub">${dual(`긍정 실천 ${posYesTotal}회(${posRate}%) · 마찰 신호 ${fricYesTotal}회(${fricRate}%)`, `Positive ${posYesTotal} (${posRate}%) · Friction ${fricYesTotal} (${fricRate}%)`)}</p>
       </div>
       <span class="ym-counter">${dual(`30일 한 줄 ${axisCounts30[idx]}일`, `30d text: ${axisCounts30[idx]}d`)}</span>
      </div>
@@ -1026,6 +1164,22 @@
     </div>
    `;
   }).join('');
+
+  const obsCardHtml = observations.length > 0
+   ? `<div class="ym-card" style="margin-top:20px">
+      <div class="ym-card-header">
+       <div>
+        <span class="eyebrow">RULE-BASED OBSERVATIONS &amp; QUESTIONS</span>
+        <h3 class="ym-card-title">${dual('규칙 기반 관찰과 되돌아볼 질문', 'Rule-Based Observations & Reflective Questions')}</h3>
+        <p class="ym-card-sub">${dual('쌓인 루틴과 기록에서 읽은 관찰이에요. 질문에 답하면 그 문장이 다음 기록이 돼요.', 'Patterns read from your routines and records. Your answer becomes the next record.')}</p>
+       </div>
+      </div>
+      ${observations.map(o => `<div style="padding:10px 0;border-top:1px solid var(--mvp-line)">
+       <div style="font-size:13.5px"><span class="ym-dot" style="background:${o.axis.color};display:inline-block;margin-right:6px"></span><strong>${dual(o.ko, o.en)}</strong></div>
+       <div style="margin-top:4px;font-size:12.5px;color:var(--mvp-accent)">${dual(`질문 · ${o.qKo}`, `Question · ${o.qEn}`)}</div>
+      </div>`).join('')}
+     </div>`
+   : '';
 
   signalsContentEl.innerHTML = `
    <div class="ym-card" style="margin-bottom:20px">
@@ -1065,6 +1219,7 @@
    <div class="ym-grid-2">
     ${eqCardsHtml}
    </div>
+   ${obsCardHtml}
   `;
  };
 
