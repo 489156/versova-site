@@ -356,6 +356,9 @@
  const todaySnapshotEl = document.getElementById('ym-today-snapshot');
 
  const kpiRowEl = document.getElementById('ym-kpi-row');
+ const dashboardHeroEl = document.getElementById('ym-dashboard-hero');
+ const personaButtonsEl = document.getElementById('ym-persona-buttons');
+ const personaDetailEl = document.getElementById('ym-persona-detail');
  const refPeriodSubEl = document.getElementById('ym-ref-period-sub');
  const refTrendBodyEl = document.getElementById('ym-ref-trend-body');
  const chartSubEl = document.getElementById('ym-chart-sub');
@@ -657,6 +660,694 @@
   return { current, longest };
  };
 
+ const PERSONAS_10 = [
+  {
+   id: 'p01_recovery',
+   code: 'P01',
+   labelKo: 'P01 김지훈 · 번아웃 회복',
+   labelEn: 'P01 Jihun · Recovery',
+   roleKo: '스타트업 백엔드 개발자 (31세) · 초반 야근·수면 무리 → 후반 아침 산책·커리어 루틴 정착',
+   roleEn: 'Backend Engineer (31) · Early burnout & sleep strain → Late morning walks & 5m career logs',
+   painKo: '기존 불편함(65일 체험): 수면 무리를 줄이고 운동 루틴을 늘렸는데 글자 수만 보여 성장을 한눈에 알기 어려웠음.',
+   painEn: '65d Pain Point: Cut sleep strain and built exercise habits, but char-only charts hid real improvement.',
+   fixKo: '시각화 해결: 최상단 한 줄 헤드라인("이전보다 긍정 루틴이 +45%p 늘며 뚜렷하게 나아지고 있어요")과 전후 비교 바로 즉시 체감.'
+  },
+  {
+   id: 'p02_returner',
+   code: 'P02',
+   labelKo: 'P02 이서연 · 공백 후 복귀',
+   labelEn: 'P02 Seoyeon · Returner',
+   roleKo: '프리랜서 디자이너 (28세) · 외주 마감 주간 5일 공백 후 어제·오늘 다시 복귀',
+   roleEn: 'Freelance Designer (28) · Paused 5 days for client deadline, resumed yesterday & today',
+   painKo: '기존 불편함(65일 체험): 며칠 쉬고 돌아올 때마다 깨진 연속 기록과 빈 차트만 보여 머쓱하고 죄책감이 들었음.',
+   painEn: '65d Pain Point: Returning after deadline breaks showed broken streaks instead of welcoming the return.',
+   fixKo: '시각화 해결: "5일 동안 멈춰 있던 기록을 깨고 다시 리듬을 되찾았어요" 헤드라인과 14일 리듬 스트립으로 복귀 탄력성 강조.'
+  },
+  {
+   id: 'p03_routine_only',
+   code: 'P03',
+   labelKo: 'P03 박민석 · 15초 루틴 전용',
+   labelEn: 'P03 Minseok · Routine-Only',
+   roleKo: '대기업 마케터·워킹대디 (36세) · 텍스트 없이 매일 밤 12개 예/아니오 루틴만 15초 체크인',
+   roleEn: 'Marketer & Dad (36) · 15-sec nightly Yes/No routine check-ins without typing text',
+   painKo: '기존 불편함(65일 체험): 65일 중 56일이나 12개 루틴을 체크했는데 텍스트가 0자라 차트가 텅 빈 것처럼 나왔음.',
+   painEn: '65d Pain Point: Checked 12 routines on 56 of 65 days, yet char-score charts rendered 0.',
+   fixKo: '시각화 해결: 루틴 응답만으로도 활력 점수, 초록빛 14일 리듬 스트립, "흔들림 없이 리듬을 유지하고 있어요" 헤드라인이 작동함.'
+  },
+  {
+   id: 'p04_plateau',
+   code: 'P04',
+   labelKo: 'P04 최유진 · 장기 정체',
+   labelEn: 'P04 Yujin · Plateau',
+   roleKo: '취업 준비생 (25세) · 65일간 주 3~4회 기계적 기록, 긍정 실천율 50% 안팎 정체',
+   roleEn: 'Job Seeker (25) · Mechanical logging 3–4d/wk for 65 days with flat ~50% positive rate',
+   painKo: '기존 불편함(65일 체험): 두 달 넘게 습관적으로 적고는 있지만 나아지고 있는지 정체된 건지 알 수 없었음.',
+   painEn: '65d Pain Point: Logged mechanically for 2+ months without knowing it was a plateau.',
+   fixKo: '시각화 해결: "최근 기록과 루틴이 비슷하게 머물러 있어요 · 작은 새 시도 하나를 더해볼까요?" 헤드라인과 정체 게이지 표시.'
+  },
+  {
+   id: 'p05_strained',
+   code: 'P05',
+   labelKo: 'P05 정현우 · 마찰 경보',
+   labelEn: 'P05 Hyunwoo · Strained',
+   roleKo: '자영업 카페 운영 (42세) · 최근 3주간 매출·응대 스트레스로 감정·수면·충동지출 마찰 급증',
+   roleEn: 'Cafe Owner (42) · Recent 3-week spike in emotional, sleep, and impulse-spending strain',
+   painKo: '기존 불편함(65일 체험): 기록은 매일 해서 달성률은 높게 뜨지만 정작 삶에 마찰과 무리가 쌓인 걸 경고해주지 못했음.',
+   painEn: '65d Pain Point: High logging completion hid the dangerous spike in daily friction signals.',
+   fixKo: '시각화 해결: 주황/코랄빛 경보 헤드라인("최근 마찰·무리 신호가 늘었어요 · 속도를 조금 늦춰도 괜찮아요")과 마찰 스트립 표시.'
+  },
+  {
+   id: 'p06_shift_nurse',
+   code: 'P06',
+   labelKo: 'P06 한소희 · 교대근무 회복',
+   labelEn: 'P06 Sohee · Shift Nurse',
+   roleKo: '대학병원 3교대 간호사 (33세) · 나이트 근무 수면·수분 불균형을 후반 30일 루틴으로 극복',
+   roleEn: '3-Shift Nurse (33) · Overcame night-shift hydration/sleep strain in the second half',
+   painKo: '기존 불편함(65일 체험): 축별 편차가 큰데 어느 축에서 긍정 루틴이 살아나고 마찰이 줄었는지 비교가 어려웠음.',
+   painEn: '65d Pain Point: Hard to see which specific axis recovered from shift-work strain.',
+   fixKo: '시각화 해결: 축별 긍정 대 마찰 양방향 대비 막대와 전진 헤드라인으로 신체 축 회복을 직관적으로 확인.'
+  },
+  {
+   id: 'p07_finance_fix',
+   code: 'P07',
+   labelKo: 'P07 강태윤 · 충동지출 교정',
+   labelEn: 'P07 Taeyoon · Finance Fix',
+   roleKo: '사회초년생 영업직 (29세) · 초반 야식·쇼핑 충동지출 → 후반 자산 계획 점검 및 절약 정착',
+   roleEn: 'Sales Rep (29) · Curbed early stress spending into steady asset planning in late 35d',
+   painKo: '기존 불편함(65일 체험): 전반 30일과 후반 35일의 실천율 변화를 직관적인 막대로 나란히 비교해주는 곳이 없었음.',
+   painEn: '65d Pain Point: Lacked a direct visual bar comparing first 30d vs last 35d.',
+   fixKo: '시각화 해결: 이전 구간 vs 최근 구간 긍정 실천율 비교 바와 자산 축 균형 막대로 성취감 제공.'
+  },
+  {
+   id: 'p08_teacher_empathy',
+   code: 'P08',
+   labelKo: 'P08 윤미경 · 감정노동 회복',
+   labelEn: 'P08 Mikyung · Teacher',
+   roleKo: '중학교 교사 (51세) · 매일 칭찬·다정한 인사와 산책으로 감정 소모를 다독이며 80%+ 긍정 유지',
+   roleEn: 'Middle School Teacher (51) · Balances emotional labor with daily kindness & walks (>80% pos)',
+   painKo: '기존 불편함(65일 체험): 엔트로피·기울기·대리 지표 같은 통계 용어가 차갑고 어렵게 느껴졌음.',
+   painEn: '65d Pain Point: Technical terms like entropy and slope felt cold and hard to read.',
+   fixKo: '시각화 해결: 통계 수치보다 따뜻한 한 줄 진단 문구와 14일 컬러 리듬 스트립을 가장 먼저 배치.'
+  },
+  {
+   id: 'p09_paused',
+   code: 'P09',
+   labelKo: 'P09 송다은 · 9일 멈춤',
+   labelEn: 'P09 Daeun · Paused 9d',
+   roleKo: '대학생·인턴 병행 (23세) · 50일간 기록 후 기말·실습으로 최근 9일 연속 기록 멈춤 상태',
+   roleEn: 'Student & Intern (23) · Logged 50 days, now paused for the last 9 days during exams',
+   painKo: '기존 불편함(65일 체험): 9일 만에 열었을 때 며칠째 멈춰 있는지 알려주지 않고 빈 화면이나 옛날 숫자만 보여 막막했음.',
+   painEn: '65d Pain Point: Opening after 9 days away showed blank weekly state instead of acknowledging the pause.',
+   fixKo: '시각화 해결: "최근 9일째 기록이 멈춰 있어요 · 빈 날은 두고 오늘부터 다시 이어가요" 헤드라인과 멈춤 스트립 즉시 표시.'
+  },
+  {
+   id: 'p10_balanced_pm',
+   code: 'P10',
+   labelKo: 'P10 조민재 · 4축 균형 마스터',
+   labelEn: 'P10 Minjae · 4-Axis Master',
+   roleKo: '프로덕트 매니저 (39세) · 65일 중 59일 네 축 루틴과 한 줄 요약을 고르게 발전시키는 헤비유저',
+   roleEn: 'Product Manager (39) · Logged 59 of 65 days across all 4 axes with rising positive equilibrium',
+   painKo: '기존 불편함(65일 체험): 기간과 축을 바꿀 때마다 3초 안에 핵심 결론을 브리핑해주는 상단 요약 카드가 없었음.',
+   painEn: '65d Pain Point: Needed a 3-second executive summary card that adapts to every period & axis filter.',
+   fixKo: '시각화 해결: 기간·축 필터에 즉각 연동되는 헤드라인 브리핑, 5단계 스펙트럼 게이지, 14일 리듬 스트립 제공.'
+  }
+ ];
+
+ const buildPersona65dRecords = personaId => {
+  const t = todayIso();
+  const out = {};
+  const totalDays = 65;
+  for (let daysAgo = totalDays - 1; daysAgo >= 0; daysAgo--) {
+   const d = shiftIso(t, -daysAgo);
+   const isLate = daysAgo < 32;
+
+   if (personaId === 'p01_recovery') {
+    if (!isLate && daysAgo % 3 === 1) continue;
+    if (isLate && daysAgo % 7 === 4) continue;
+    out[d] = normalizeRecord(d, {
+     career: isLate ? '아키텍처 리팩터링 및 PR 코드 리뷰 마무리' : '야근 중 긴급 핫픽스 배포',
+     physical: isLate ? '아침 산책 30분 및 물 2리터 마시기' : '',
+     emotional: daysAgo % 2 === 0 ? '동료에게 먼저 감사 인사 건네기' : '',
+     financial: isLate && daysAgo % 2 === 0 ? '정기 적금 및 지출 계획 점검' : '',
+     financialCategory: 'SAVINGS',
+     reflections: {
+      careerDevelopment: { answer: isLate ? true : daysAgo % 3 === 0, note: '' },
+      workInnovation: { answer: isLate ? daysAgo % 4 !== 0 : false, note: '' },
+      workMistake: { answer: isLate ? false : daysAgo % 2 === 0, note: '' },
+      physicalActivity: { answer: isLate, note: '' },
+      waterIntake: { answer: isLate ? true : daysAgo % 3 === 0, note: '' },
+      dietSleepStrain: { answer: isLate ? daysAgo % 9 === 0 : true, note: '' },
+      complimentedSomeone: { answer: isLate ? true : daysAgo % 2 === 0, note: '' },
+      emotionalReaction: { answer: isLate ? false : daysAgo % 2 === 1, note: '' },
+      emotionallyHurt: { answer: false, note: '' },
+      assetGrowth: { answer: isLate ? daysAgo % 2 === 0 : false, note: '' },
+      assetPlanning: { answer: isLate, note: '' },
+      impulseSpending: { answer: isLate ? false : daysAgo % 2 === 0, note: '' }
+     }
+    });
+   } else if (personaId === 'p02_returner') {
+    if ((daysAgo >= 2 && daysAgo <= 6) || (daysAgo >= 18 && daysAgo <= 22) || (daysAgo >= 36 && daysAgo <= 40) || (daysAgo >= 52 && daysAgo <= 55)) continue;
+    out[d] = normalizeRecord(d, {
+     career: '클라이언트 브랜드 시안 피드백 반영 및 아카이빙',
+     physical: '작업 전후 스트레칭 20분 및 수분 보충',
+     emotional: '마감 뒤 산책하며 마음 가다듬기',
+     financial: '외주 정산 내역 점검 및 저축 이체',
+     financialCategory: 'INCOME',
+     reflections: {
+      careerDevelopment: { answer: true, note: '' },
+      workInnovation: { answer: daysAgo % 2 === 0, note: '' },
+      workMistake: { answer: false, note: '' },
+      physicalActivity: { answer: daysAgo % 2 === 0, note: '' },
+      waterIntake: { answer: true, note: '' },
+      dietSleepStrain: { answer: daysAgo % 5 === 0, note: '' },
+      complimentedSomeone: { answer: true, note: '' },
+      emotionalReaction: { answer: false, note: '' },
+      emotionallyHurt: { answer: false, note: '' },
+      assetGrowth: { answer: daysAgo % 3 === 0, note: '' },
+      assetPlanning: { answer: true, note: '' },
+      impulseSpending: { answer: false, note: '' }
+     }
+    });
+   } else if (personaId === 'p03_routine_only') {
+    if (daysAgo % 8 === 5) continue;
+    out[d] = normalizeRecord(d, {
+     career: '', physical: '', emotional: '', financial: '',
+     reflections: {
+      careerDevelopment: { answer: daysAgo % 4 !== 1, note: '' },
+      workInnovation: { answer: daysAgo % 3 !== 2, note: '' },
+      workMistake: { answer: daysAgo % 7 === 0, note: '' },
+      physicalActivity: { answer: daysAgo % 3 !== 1, note: '' },
+      waterIntake: { answer: true, note: '' },
+      dietSleepStrain: { answer: daysAgo % 6 === 0, note: '' },
+      complimentedSomeone: { answer: true, note: '' },
+      emotionalReaction: { answer: daysAgo % 8 === 0, note: '' },
+      emotionallyHurt: { answer: false, note: '' },
+      assetGrowth: { answer: daysAgo % 2 === 0, note: '' },
+      assetPlanning: { answer: daysAgo % 3 !== 0, note: '' },
+      impulseSpending: { answer: daysAgo % 7 === 2, note: '' }
+     }
+    });
+   } else if (personaId === 'p04_plateau') {
+    if (daysAgo % 2 === 1) continue;
+    out[d] = normalizeRecord(d, {
+     career: '채용 공고 확인 및 이력서 문장 점검',
+     physical: daysAgo % 4 === 0 ? '동네 가벼운 산책 20분' : '',
+     emotional: '', financial: '',
+     reflections: {
+      careerDevelopment: { answer: true, note: '' },
+      workInnovation: { answer: false, note: '' },
+      workMistake: { answer: false, note: '' },
+      physicalActivity: { answer: daysAgo % 4 === 0, note: '' },
+      waterIntake: { answer: daysAgo % 4 === 0, note: '' },
+      dietSleepStrain: { answer: daysAgo % 4 === 2, note: '' },
+      complimentedSomeone: { answer: daysAgo % 4 === 0, note: '' },
+      emotionalReaction: { answer: false, note: '' },
+      emotionallyHurt: { answer: false, note: '' },
+      assetGrowth: { answer: false, note: '' },
+      assetPlanning: { answer: daysAgo % 4 === 0, note: '' },
+      impulseSpending: { answer: false, note: '' }
+     }
+    });
+   } else if (personaId === 'p05_strained') {
+    if (daysAgo % 7 === 6) continue;
+    out[d] = normalizeRecord(d, {
+     career: '매장 재고 점검 및 원가 정산 마감',
+     physical: isLate ? '' : '오전 스트레칭 15분',
+     emotional: '바쁜 시간대 고객 응대 후 호흡 가다듬기',
+     financial: '매장 일일 정산 및 지출 점검',
+     financialCategory: 'EXPENSE_REDUCTION',
+     reflections: {
+      careerDevelopment: { answer: !isLate, note: '' },
+      workInnovation: { answer: false, note: '' },
+      workMistake: { answer: isLate, note: '' },
+      physicalActivity: { answer: !isLate, note: '' },
+      waterIntake: { answer: !isLate, note: '' },
+      dietSleepStrain: { answer: isLate, note: '' },
+      complimentedSomeone: { answer: daysAgo % 3 === 0, note: '' },
+      emotionalReaction: { answer: isLate, note: '' },
+      emotionallyHurt: { answer: isLate && daysAgo % 2 === 0, note: '' },
+      assetGrowth: { answer: false, note: '' },
+      assetPlanning: { answer: !isLate, note: '' },
+      impulseSpending: { answer: isLate, note: '' }
+     }
+    });
+   } else if (personaId === 'p06_shift_nurse') {
+    if (daysAgo % 6 === 4) continue;
+    out[d] = normalizeRecord(d, {
+     career: '병동 인계 체크리스트 개선 및 후배 프리셉터 코칭',
+     physical: isLate ? '교대근무 전후 폼롤러 스트레칭 20분 및 수분 섭취' : '',
+     emotional: '동료 간호사에게 따뜻한 격려 인사 건네기',
+     financial: '교대근무 수당 저축 계좌 자동 분리',
+     financialCategory: 'SAVINGS',
+     reflections: {
+      careerDevelopment: { answer: true, note: '' },
+      workInnovation: { answer: isLate, note: '' },
+      workMistake: { answer: false, note: '' },
+      physicalActivity: { answer: isLate, note: '' },
+      waterIntake: { answer: isLate, note: '' },
+      dietSleepStrain: { answer: !isLate, note: '' },
+      complimentedSomeone: { answer: true, note: '' },
+      emotionalReaction: { answer: false, note: '' },
+      emotionallyHurt: { answer: !isLate && daysAgo % 3 === 0, note: '' },
+      assetGrowth: { answer: isLate, note: '' },
+      assetPlanning: { answer: true, note: '' },
+      impulseSpending: { answer: false, note: '' }
+     }
+    });
+   } else if (personaId === 'p07_finance_fix') {
+    if (daysAgo % 5 === 3) continue;
+    out[d] = normalizeRecord(d, {
+     career: '신규 고객사 제안서 업데이트 및 미팅 복기',
+     physical: '퇴근길 두 정거장 먼저 내려 걷기 25분',
+     emotional: '거절 피드백에도 평정심 유지하며 다음 미팅 준비',
+     financial: isLate ? '배달 대신 집밥 실천하고 소액 적금 납입' : '주간 지출 내역 점검',
+     financialCategory: 'EXPENSE_REDUCTION',
+     reflections: {
+      careerDevelopment: { answer: isLate ? true : daysAgo % 2 === 0, note: '' },
+      workInnovation: { answer: isLate, note: '' },
+      workMistake: { answer: false, note: '' },
+      physicalActivity: { answer: daysAgo % 2 === 0, note: '' },
+      waterIntake: { answer: true, note: '' },
+      dietSleepStrain: { answer: !isLate && daysAgo % 2 === 0, note: '' },
+      complimentedSomeone: { answer: true, note: '' },
+      emotionalReaction: { answer: false, note: '' },
+      emotionallyHurt: { answer: false, note: '' },
+      assetGrowth: { answer: isLate, note: '' },
+      assetPlanning: { answer: isLate, note: '' },
+      impulseSpending: { answer: !isLate, note: '' }
+     }
+    });
+   } else if (personaId === 'p08_teacher_empathy') {
+    if (daysAgo % 6 === 5) continue;
+    out[d] = normalizeRecord(d, {
+     career: '수업 활동지 개선 및 학생 상담 기록 정리',
+     physical: '방과 후 운동장 산책 30분 및 따뜻한 물 마시기',
+     emotional: '조용히 애쓴 학생을 찾아 구체적으로 칭찬해 주기',
+     financial: '연금저축 및 월간 교육비 예산 점검',
+     financialCategory: 'SAVINGS',
+     reflections: {
+      careerDevelopment: { answer: true, note: '' },
+      workInnovation: { answer: daysAgo % 2 === 0, note: '' },
+      workMistake: { answer: false, note: '' },
+      physicalActivity: { answer: daysAgo % 2 === 0, note: '' },
+      waterIntake: { answer: true, note: '' },
+      dietSleepStrain: { answer: false, note: '' },
+      complimentedSomeone: { answer: true, note: '' },
+      emotionalReaction: { answer: false, note: '' },
+      emotionallyHurt: { answer: daysAgo % 7 === 0, note: '' },
+      assetGrowth: { answer: daysAgo % 2 === 0, note: '' },
+      assetPlanning: { answer: true, note: '' },
+      impulseSpending: { answer: false, note: '' }
+     }
+    });
+   } else if (personaId === 'p09_paused') {
+    if (daysAgo < 9) continue;
+    if (daysAgo % 5 === 4) continue;
+    out[d] = normalizeRecord(d, {
+     career: '인턴십 과제 자료 조사 및 전공 강의 복습',
+     physical: '캠퍼스 도보 이동 및 물 충분히 마시기',
+     emotional: '팀원에게 먼저 고맙다고 메시지 보내기',
+     financial: '용돈 기입장 정리',
+     financialCategory: 'OTHER',
+     reflections: {
+      careerDevelopment: { answer: true, note: '' },
+      workInnovation: { answer: daysAgo % 2 === 0, note: '' },
+      workMistake: { answer: false, note: '' },
+      physicalActivity: { answer: true, note: '' },
+      waterIntake: { answer: true, note: '' },
+      dietSleepStrain: { answer: false, note: '' },
+      complimentedSomeone: { answer: true, note: '' },
+      emotionalReaction: { answer: false, note: '' },
+      emotionallyHurt: { answer: false, note: '' },
+      assetGrowth: { answer: false, note: '' },
+      assetPlanning: { answer: true, note: '' },
+      impulseSpending: { answer: false, note: '' }
+     }
+    });
+   } else {
+    if (daysAgo % 11 === 7) continue;
+    out[d] = normalizeRecord(d, {
+     career: '분기 제품 로드맵 지표 점검 및 실험 가설 문서화',
+     physical: '아침 러닝 5km 및 수분 2리터 섭취 완료',
+     emotional: '회의에서 동료의 아이디어를 구체적으로 칭찬함',
+     financial: '글로벌 ETF 정기 매수 및 월간 자산 배분 점검',
+     financialCategory: 'INVESTMENT',
+     reflections: {
+      careerDevelopment: { answer: true, note: '' },
+      workInnovation: { answer: isLate ? true : daysAgo % 2 === 0, note: '' },
+      workMistake: { answer: false, note: '' },
+      physicalActivity: { answer: isLate ? true : daysAgo % 2 === 0, note: '' },
+      waterIntake: { answer: true, note: '' },
+      dietSleepStrain: { answer: false, note: '' },
+      complimentedSomeone: { answer: true, note: '' },
+      emotionalReaction: { answer: false, note: '' },
+      emotionallyHurt: { answer: false, note: '' },
+      assetGrowth: { answer: isLate ? true : daysAgo % 2 === 0, note: '' },
+      assetPlanning: { answer: true, note: '' },
+      impulseSpending: { answer: false, note: '' }
+     }
+    });
+   }
+  }
+  return out;
+ };
+
+ let activePersonaId = null;
+
+ const renderPersonaSimulatorBar = () => {
+  if (!personaButtonsEl) return;
+  personaButtonsEl.innerHTML = PERSONAS_10.map(p => {
+   const isSelected = activePersonaId === p.id;
+   return `<button type="button" class="ym-pill ${isSelected ? 'is-yes' : ''}" data-persona-id="${p.id}" style="font-size:11.5px;min-height:28px;padding:3px 10px">${dual(p.labelKo, p.labelEn)}</button>`;
+  }).join('');
+
+  for (const btn of personaButtonsEl.querySelectorAll('[data-persona-id]')) {
+   btn.addEventListener('click', () => {
+    const pid = btn.getAttribute('data-persona-id');
+    const found = PERSONAS_10.find(x => x.id === pid);
+    if (!found) return;
+    activePersonaId = pid;
+    records = buildPersona65dRecords(pid);
+    saveRecords(records);
+    loadDateIntoEditor(todayIso());
+    renderPersonaSimulatorBar();
+    renderAllPanels();
+    if (personaDetailEl) {
+     personaDetailEl.hidden = false;
+     personaDetailEl.innerHTML = `
+      <div style="padding:10px 12px;border:1px solid var(--mvp-line);background:var(--mvp-card)">
+       <div><strong style="color:var(--mvp-ink)">${dual(found.roleKo, found.roleEn)}</strong></div>
+       <div style="margin-top:4px">${dual(found.painKo, found.painEn)}</div>
+       <div style="margin-top:3px;color:var(--mvp-accent)">${dual(found.fixKo, found.fixKo)}</div>
+      </div>
+     `;
+    }
+    showToast(`${found.labelKo} (65일 기록) 데이터를 불러왔어요.`, `Loaded 65-day dataset for ${found.labelEn}.`);
+   });
+  }
+ };
+
+ const isRecordActiveForAxis = (rec, axisFilter) => {
+  if (!rec) return false;
+  if (axisFilter === 'all') return hasRecordContent(rec);
+  const hasTxt = scoreAxis(rec, axisFilter) > 0;
+  const hasRef = QUESTIONS.some(q => q.axis === axisFilter && rec.reflections?.[q.key]?.answer !== null && rec.reflections?.[q.key]?.answer !== undefined);
+  return hasTxt || hasRef;
+ };
+
+ const computeHeroVerdict = (windowDays, axisFilter) => {
+  const scopeQuestions = axisFilter === 'all' ? QUESTIONS : QUESTIONS.filter(q => q.axis === axisFilter);
+  const dates = [];
+  for (let i = windowDays - 1; i >= 0; i--) {
+   dates.push(shiftIso(activeDate, -i));
+  }
+
+  const allActiveDates = Object.keys(records)
+   .filter(d => d <= activeDate && isRecordActiveForAxis(records[d], axisFilter))
+   .sort();
+
+  const daysSinceLast = allActiveDates.length > 0
+   ? Math.round((parseIso(activeDate) - parseIso(allActiveDates[allActiveDates.length - 1])) / 86400000)
+   : null;
+
+  let returnGap = null;
+  if (allActiveDates.length >= 2 && daysSinceLast !== null && daysSinceLast <= 1) {
+   const lastDt = parseIso(allActiveDates[allActiveDates.length - 1]);
+   const prevDt = parseIso(allActiveDates[allActiveDates.length - 2]);
+   const g = Math.round((lastDt - prevDt) / 86400000) - 1;
+   if (g >= 3) returnGap = g;
+  }
+
+  const mid = Math.max(1, Math.floor(dates.length / 2));
+  const earlyDates = dates.slice(0, mid);
+  const lateDates = dates.slice(mid);
+
+  const countActive = list => list.filter(d => isRecordActiveForAxis(records[d], axisFilter)).length;
+  const activeDays = countActive(dates);
+  const earlyActRate = earlyDates.length ? countActive(earlyDates) / earlyDates.length : 0;
+  const lateActRate = lateDates.length ? countActive(lateDates) / lateDates.length : 0;
+  const actDeltaPp = Math.round((lateActRate - earlyActRate) * 100);
+
+  const calcRates = list => {
+   let pYes = 0; let pAns = 0; let fYes = 0; let fAns = 0;
+   for (const d of list) {
+    const r = records[d];
+    if (!r) continue;
+    for (const q of scopeQuestions) {
+     const ans = r.reflections?.[q.key]?.answer;
+     if (ans === true) {
+      if (q.polarity === 'positive') { pYes++; pAns++; } else { fYes++; fAns++; }
+     } else if (ans === false) {
+      if (q.polarity === 'positive') pAns++; else fAns++;
+     }
+    }
+   }
+   return {
+    posRate: pAns > 0 ? pYes / pAns : 0,
+    fricRate: fAns > 0 ? fYes / fAns : 0,
+    pAns,
+    fAns
+   };
+  };
+
+  const earlyR = calcRates(earlyDates);
+  const lateR = calcRates(lateDates);
+  const fullR = calcRates(dates);
+
+  const earlyPosRate = earlyR.posRate;
+  const latePosRate = lateR.pAns > 0 ? lateR.posRate : fullR.posRate;
+  const posDeltaPp = earlyR.pAns > 0 && lateR.pAns > 0 ? Math.round((latePosRate - earlyPosRate) * 100) : 0;
+  const recentFricRate = lateR.fAns > 0 ? lateR.fricRate : fullR.fricRate;
+
+  let status = 'steady';
+  let stageIndex = 3;
+  if (allActiveDates.length === 0 || (activeDays <= 2 && allActiveDates.length <= 2)) {
+   status = 'starting';
+   stageIndex = 2;
+  } else if (daysSinceLast !== null && daysSinceLast >= 3) {
+   status = 'paused';
+   stageIndex = 0;
+  } else if (returnGap !== null && returnGap >= 3) {
+   status = 'returning';
+   stageIndex = 3;
+  } else if (lateR.fAns >= 3 && recentFricRate >= 0.48 && recentFricRate > latePosRate * 0.75) {
+   status = 'strained';
+   stageIndex = 1;
+  } else if (posDeltaPp >= 8 || (actDeltaPp >= 15 && latePosRate >= 0.6) || (latePosRate >= 0.78 && lateActRate >= 0.65 && posDeltaPp >= 0)) {
+   status = 'improving';
+   stageIndex = 4;
+  } else if (Math.abs(posDeltaPp) <= 5 && Math.abs(actDeltaPp) <= 10 && (latePosRate < 0.62 || lateActRate < 0.55)) {
+   status = 'plateau';
+   stageIndex = 2;
+  }
+
+  const rawMomentum = lateActRate * 45 + latePosRate * 45 + Math.max(0, 1 - recentFricRate) * 10 + (status === 'improving' ? 8 : status === 'paused' ? -25 : 0);
+  const momentumScore = allActiveDates.length === 0 ? 0 : Math.max(8, Math.min(100, Math.round(rawMomentum)));
+
+  const strip14 = [];
+  for (let i = 13; i >= 0; i--) {
+   const d = shiftIso(activeDate, -i);
+   const r = records[d];
+   if (!r || !isRecordActiveForAxis(r, axisFilter)) {
+    strip14.push({ date: d, state: 'empty', pYes: 0, fYes: 0, sc: 0 });
+    continue;
+   }
+   let pYes = 0; let fYes = 0;
+   for (const q of scopeQuestions) {
+    if (r.reflections?.[q.key]?.answer === true) {
+     if (q.polarity === 'positive') pYes++; else fYes++;
+    }
+   }
+   const sc = scoreRecord(r, axisFilter);
+   let st = 'textOnly';
+   if (pYes > 0 && fYes === 0) st = 'positive';
+   else if (pYes > 0 && fYes > 0) st = pYes >= fYes ? 'positive' : 'mixed';
+   else if (fYes > 0) st = 'friction';
+   strip14.push({ date: d, state: st, pYes, fYes, sc });
+  }
+
+  return {
+   status,
+   stageIndex,
+   momentumScore,
+   windowDays,
+   activeDays,
+   daysSinceLast,
+   returnGap,
+   earlyPosPct: Math.round(earlyPosRate * 100),
+   latePosPct: Math.round(latePosRate * 100),
+   posDeltaPp,
+   earlyActPct: Math.round(earlyActRate * 100),
+   lateActPct: Math.round(lateActRate * 100),
+   actDeltaPp,
+   fricPct: Math.round(recentFricRate * 100),
+   strip14
+  };
+ };
+
+ const renderHeroVerdictHtml = v => {
+  const statusMap = {
+   improving: {
+    color: '#4CAF50',
+    badgeKo: '뚜렷한 전진 · IMPROVING',
+    badgeEn: 'IMPROVING · FORWARD MOMENTUM',
+    headKo: `이전보다 긍정 루틴이 ${Math.max(1, Math.abs(v.posDeltaPp || v.actDeltaPp))}%p 늘며 전보다 뚜렷하게 나아지고 있어요`,
+    headEn: `Positive routines grew by +${Math.max(1, Math.abs(v.posDeltaPp || v.actDeltaPp))}%p, clearly improving over before`,
+    subKo: `최근 ${v.windowDays}일 중 ${v.activeDays}일 기록 · 후반 긍정 루틴 실천율 ${v.latePosPct}%로 리듬이 한결 탄탄해졌어요.`,
+    subEn: `Logged ${v.activeDays} of ${v.windowDays} days · recent positive routine rate reached ${v.latePosPct}%.`
+   },
+   returning: {
+    color: '#4CAF50',
+    badgeKo: '공백 후 복귀 · BACK IN RHYTHM',
+    badgeEn: 'BACK IN RHYTHM · RESUMED',
+    headKo: `${v.returnGap}일 동안 멈춰 있던 기록을 깨고 다시 리듬을 되찾았어요`,
+    headEn: `You broke a ${v.returnGap}-day pause and found your rhythm again`,
+    subKo: '쉬었다가 돌아오는 힘이 진짜 꾸준함이에요. 오늘 남긴 루틴부터 다시 이어가요.',
+    subEn: 'Coming back after a break is real consistency. Keep going from today.'
+   },
+   steady: {
+    color: '#3B82F6',
+    badgeKo: '꾸준한 유지 · STEADY RHYTHM',
+    badgeEn: 'STEADY RHYTHM · CONSISTENT',
+    headKo: `긍정 루틴 실천율 ${v.latePosPct}%로 흔들림 없이 리듬을 유지하고 있어요`,
+    headEn: `Holding a steady rhythm with ${v.latePosPct}% positive routines`,
+    subKo: `최근 ${v.windowDays}일 중 ${v.activeDays}일을 기록하며 일상 루틴을 안정적으로 이어가고 있어요.`,
+    subEn: `Logged ${v.activeDays} of ${v.windowDays} days with balanced daily routines.`
+   },
+   plateau: {
+    color: '#F59E0B',
+    badgeKo: '정체·숨고르기 · PLATEAU',
+    badgeEn: 'PLATEAU · HOLDING FLAT',
+    headKo: '최근 기록과 루틴이 비슷하게 머물러 있어요 · 작은 새 시도 하나를 더해볼까요?',
+    headEn: 'Your rhythm has stayed flat lately · try adding one small new step',
+    subKo: `최근 ${v.windowDays}일 중 ${v.activeDays}일 기록하며 긍정 루틴 ${v.latePosPct}% 수준에 머물러 있어요.`,
+    subEn: `Logged ${v.activeDays} of ${v.windowDays} days while holding ${v.latePosPct}% positive routines.`
+   },
+   strained: {
+    color: '#EF4444',
+    badgeKo: '마찰·무리 주의 · FRICTION ALERT',
+    badgeEn: 'FRICTION ALERT · HIGH STRAIN',
+    headKo: `최근 마찰·무리 신호가 ${v.fricPct}%로 늘었어요 · 속도를 조금 늦춰도 괜찮아요`,
+    headEn: `Friction signals rose to ${v.fricPct}% lately · it is okay to slow your pace`,
+    subKo: '업무·수면·감정·지출 마찰이 자주 켜졌어요. 무리한 목표보다 몸과 마음 회복을 먼저 챙겨보세요.',
+    subEn: 'Work, sleep, emotional, or spending strain showed up often. Put recovery first.'
+   },
+   paused: {
+    color: '#9CA3AF',
+    badgeKo: '기록 멈춤 · PAUSED',
+    badgeEn: 'PAUSED · WAITING FOR YOU',
+    headKo: `최근 ${v.daysSinceLast}일째 기록이 멈춰 있어요 · 빈 날은 두고 오늘부터 다시 이어가요`,
+    headEn: `Paused for the last ${v.daysSinceLast} days · leave the gap and pick up from today`,
+    subKo: `최근 ${v.windowDays}일 중 ${v.activeDays}일 기록했어요. 밀린 날을 채우지 않아도 오늘 루틴 하나면 충분해요.`,
+    subEn: `Logged ${v.activeDays} of the last ${v.windowDays} days. No need to backfill missed days.`
+   },
+   starting: {
+    color: '#4CAF50',
+    badgeKo: '첫걸음 시작 · JUST STARTING',
+    badgeEn: 'JUST STARTING · FIRST STEP',
+    headKo: '첫 기록의 자리를 열었어요 · 오늘 루틴 하나부터 가볍게 쌓아봐요',
+    headEn: 'You opened your first space · start light with one routine today',
+    subKo: '기록이 3일 이상 쌓이면 이전과 지금의 변화를 한눈에 비교해 드려요.',
+    subEn: 'Log 3 or more days to unlock before-and-after trajectory comparisons.'
+   }
+  };
+
+  const st = statusMap[v.status] || statusMap.steady;
+  const stages = [
+   { ko: '01 멈춤', en: '01 Paused' },
+   { ko: '02 마찰 주의', en: '02 Strained' },
+   { ko: '03 정체', en: '03 Plateau' },
+   { ko: '04 유지·복귀', en: '04 Steady' },
+   { ko: '05 전진', en: '05 Improving' }
+  ];
+
+  const stageGaugeHtml = stages.map((s, idx) => {
+   const active = idx === v.stageIndex;
+   return `<div style="flex:1;text-align:center">
+    <div style="height:8px;border-radius:999px;background:${active ? st.color : 'var(--mvp-line)'};transition:all .2s"></div>
+    <div style="margin-top:5px;font-size:11px;font-weight:${active ? '700' : '400'};color:${active ? st.color : 'var(--mvp-muted)'}">${dual(s.ko, s.en)}</div>
+   </div>`;
+  }).join('');
+
+  const posDeltaSign = v.posDeltaPp > 0 ? `+${v.posDeltaPp}%p` : `${v.posDeltaPp}%p`;
+  const actDeltaSign = v.actDeltaPp > 0 ? `+${v.actDeltaPp}%p` : `${v.actDeltaPp}%p`;
+
+  const cellColor = {
+   positive: '#4CAF50',
+   mixed: '#F59E0B',
+   friction: '#EF4444',
+   textOnly: '#3B82F6',
+   empty: 'var(--mvp-line)'
+  };
+
+  const stripCellsHtml = v.strip14.map(c => {
+   const col = cellColor[c.state] || 'var(--mvp-line)';
+   const tip = `${c.date}: +${c.pYes} / -${c.fYes} (${c.sc}c)`;
+   return `<button type="button" data-jump-date="${c.date}" title="${esc(tip)}" aria-label="${esc(tip)}" style="flex:1;height:22px;border:none;border-radius:3px;background:${col};cursor:pointer;padding:0"></button>`;
+  }).join('');
+
+  return `
+   <div class="ym-card" style="border:2px solid ${st.color};margin-bottom:0">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+     <span class="ym-pill" style="border-color:${st.color};color:${st.color};font-weight:700;font-size:11.5px;min-height:26px">${dual(st.badgeKo, st.badgeEn)}</span>
+     <span class="ym-counter" style="font-size:13px">${dual(`현재 리듬 활력도 ${v.momentumScore}점 / 100`, `Rhythm Vitality ${v.momentumScore} / 100`)}</span>
+    </div>
+
+    <h3 style="font-family:var(--serif);font-size:clamp(20px,2.3vw,27px);line-height:1.35;margin:0;color:var(--mvp-ink)">${dual(st.headKo, st.headEn)}</h3>
+    <p style="margin:6px 0 0;font-size:13.5px;color:var(--mvp-muted)">${dual(st.subKo, st.subEn)}</p>
+
+    <div style="display:flex;gap:6px;margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
+     ${stageGaugeHtml}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
+     <div>
+      <div class="ym-bar-meta">
+       <span><strong>${dual('긍정 루틴 실천율 (이전 → 최근)', 'Positive Routine Rate (Before → Now)')}</strong></span>
+       <span class="ym-counter" style="color:${st.color}">${dual(`이전 ${v.earlyPosPct}% → 최근 ${v.latePosPct}% (${posDeltaSign})`, `Before ${v.earlyPosPct}% → Now ${v.latePosPct}% (${posDeltaSign})`)}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:6px">
+       <span class="micro">${dual('최근', 'Now')}</span>
+       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.latePosPct)}%;background:#4CAF50"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:4px">
+       <span class="micro">${dual('이전', 'Before')}</span>
+       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.earlyPosPct)}%;background:var(--mvp-muted);opacity:0.45"></div></div>
+      </div>
+     </div>
+
+     <div>
+      <div class="ym-bar-meta">
+       <span><strong>${dual('기록 참여 밀도 (이전 → 최근)', 'Recording Density (Before → Now)')}</strong></span>
+       <span class="ym-counter">${dual(`이전 ${v.earlyActPct}% → 최근 ${v.lateActPct}% (${actDeltaSign})`, `Before ${v.earlyActPct}% → Now ${v.lateActPct}% (${actDeltaSign})`)}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:6px">
+       <span class="micro">${dual('최근', 'Now')}</span>
+       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.lateActPct)}%;background:#3B82F6"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:4px">
+       <span class="micro">${dual('이전', 'Before')}</span>
+       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.earlyActPct)}%;background:var(--mvp-muted);opacity:0.45"></div></div>
+      </div>
+     </div>
+    </div>
+
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
+     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+      <span class="micro">${dual('최근 14일 일별 리듬 흐름 (오래된 날 → 오늘 · 칸을 눌러 해당 날짜 열기)', 'LAST 14 DAYS DAILY RHYTHM STRIP (OLDEST → TODAY · CLICK TO OPEN DAY)')}</span>
+      <span style="display:inline-flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--mvp-muted)">
+       <span><span class="ym-dot" style="background:#4CAF50;display:inline-block;margin-right:4px"></span>${dual('긍정 우세', 'Positive')}</span>
+       <span><span class="ym-dot" style="background:#EF4444;display:inline-block;margin-right:4px"></span>${dual('마찰 우세', 'Friction')}</span>
+       <span><span class="ym-dot" style="background:#3B82F6;display:inline-block;margin-right:4px"></span>${dual('한 줄 기록', 'Text Only')}</span>
+       <span><span class="ym-dot" style="background:var(--mvp-line);display:inline-block;margin-right:4px"></span>${dual('멈춤', 'Paused')}</span>
+      </span>
+     </div>
+     <div style="display:flex;gap:4px">${stripCellsHtml}</div>
+    </div>
+   </div>
+  `;
+ };
+
  const renderDashboard = () => {
   if (!kpiRowEl) return;
   const daysCount = getPeriodDaysCount(activePeriod);
@@ -664,6 +1355,21 @@
   const datesInRange = [];
   for (let i = daysCount - 1; i >= 0; i--) {
    datesInRange.push(shiftIso(activeDate, -i));
+  }
+
+  if (dashboardHeroEl) {
+   const heroWindow = daysCount === 2 ? 14 : daysCount;
+   dashboardHeroEl.innerHTML = renderHeroVerdictHtml(computeHeroVerdict(heroWindow, activeAxis));
+   for (const jumpEl of dashboardHeroEl.querySelectorAll('[data-jump-date]')) {
+    jumpEl.addEventListener('click', () => {
+     const targetDate = jumpEl.getAttribute('data-jump-date');
+     if (targetDate) {
+      loadDateIntoEditor(targetDate);
+      setTab('record');
+      showToast(`${targetDate} 기록을 불러왔어요.`, `Loaded ${targetDate} in Record editor.`);
+     }
+    });
+   }
   }
 
   const recsInRange = datesInRange.map(d => records[d]).filter(r => r && hasRecordContent(r));
@@ -1160,6 +1866,18 @@
       </div>
       <span class="ym-counter">${dual(`30일 한 줄 ${axisCounts30[idx]}일`, `30d text: ${axisCounts30[idx]}d`)}</span>
      </div>
+     <div style="margin-bottom:12px;padding:8px 10px;border:1px solid var(--mvp-line);background:var(--mvp-surface)">
+      <div style="display:grid;grid-template-columns:56px 1fr 42px;gap:8px;align-items:center">
+       <span class="micro" style="color:var(--mvp-accent)">${dual('긍정', 'Pos')}</span>
+       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, posRate)}%;background:${a.color}"></div></div>
+       <span class="ym-counter" style="text-align:right">${posRate}%</span>
+      </div>
+      <div style="display:grid;grid-template-columns:56px 1fr 42px;gap:8px;align-items:center;margin-top:6px">
+       <span class="micro" style="color:#EF4444">${dual('마찰', 'Fric')}</span>
+       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, fricRate)}%;background:#EF4444"></div></div>
+       <span class="ym-counter" style="text-align:right">${fricRate}%</span>
+      </div>
+     </div>
      ${rows}
     </div>
    `;
@@ -1181,7 +1899,10 @@
      </div>`
    : '';
 
+  const signalsHeroHtml = renderHeroVerdictHtml(computeHeroVerdict(30, 'all'));
+
   signalsContentEl.innerHTML = `
+   ${signalsHeroHtml}
    <div class="ym-card" style="margin-bottom:20px">
     <div class="ym-card-header">
      <div>
@@ -1221,6 +1942,17 @@
    </div>
    ${obsCardHtml}
   `;
+
+  for (const jumpEl of signalsContentEl.querySelectorAll('[data-jump-date]')) {
+   jumpEl.addEventListener('click', () => {
+    const targetDate = jumpEl.getAttribute('data-jump-date');
+    if (targetDate) {
+     loadDateIntoEditor(targetDate);
+     setTab('record');
+     showToast(`${targetDate} 기록을 불러왔어요.`, `Loaded ${targetDate} in Record editor.`);
+    }
+   });
+  }
  };
 
  // History & Export / Backup Renderer
@@ -1405,6 +2137,7 @@
  });
 
  btnResetAll?.addEventListener('click', () => {
+  activePersonaId = null;
   records = {};
   saveRecords(records);
   try {
@@ -1418,6 +2151,7 @@
  });
 
  const renderAllPanels = () => {
+  renderPersonaSimulatorBar();
   renderRecordSidebars();
   renderDashboard();
   renderSignals();
