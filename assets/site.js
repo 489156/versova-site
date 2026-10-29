@@ -460,7 +460,6 @@
         currentDraft.reflections[q.key] = { answer: ans, note: '' };
        }
       }
-      persistDraft();
       syncFormFromDraft();
       showToast('어제 루틴 응답을 오늘 초안으로 불러왔어요.', "Copied yesterday's routines into today's draft.");
      });
@@ -1362,6 +1361,26 @@
       </span>
      </div>
      <div style="display:flex;gap:4px">${stripCellsHtml}</div>
+    </div>
+
+    <div style="margin-top:14px;padding:12px 14px;border:1px solid var(--mvp-line);border-left:3px solid ${v.status === 'strained' ? '#EC4899' : v.status === 'steady' || v.status === 'starting' ? '#10B981' : '#3B82F6'};background:var(--mvp-surface)">
+     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px">
+      <span class="micro" style="font-weight:700;color:${v.status === 'strained' ? '#EC4899' : v.status === 'steady' || v.status === 'starting' ? '#10B981' : '#3B82F6'}">
+       ${v.status === 'strained'
+        ? dual('DUKKHA · 고(苦) · 마찰의 수용', 'DUKKHA · Friction · Gentle Acceptance')
+        : v.status === 'steady' || v.status === 'starting'
+         ? dual('ANATTA · 무아(無我) · 비집착과 자유', 'ANATTA · Non-Attachment · Open Self')
+         : dual('ANICCA · 무상(無常) · 흐르는 변화', 'ANICCA · Impermanence · Flowing Change')}
+      </span>
+      <span class="micro">${dual('정서안정 · 삼법인(三法印) 명언', 'Emotional Grounding · Tilakkhana')}</span>
+     </div>
+     <div style="font-size:13px;line-height:1.6;color:var(--mvp-ink)">
+      ${v.status === 'strained'
+       ? dual('마음이 흔들리고 계획이 어긋나는 날이 있는 건 삶이 고장 나서가 아니라 살아 움직이고 있기 때문이에요.', 'Days when your mind wavers or plans slip do not mean life is broken. They simply mean you are alive and moving.')
+       : v.status === 'steady' || v.status === 'starting'
+        ? dual('어제의 실수나 빈칸이 곧 나 자신은 아니에요. 지나간 기록이라는 옷을 가볍게 내려놓을 때 오늘의 나는 언제든 새로워져요.', "Yesterday's mistake or blank space is not who you are. When you set down the weight of past records, today's self is free to begin anew.")
+        : dual('어제의 무거움도 오늘의 막막함도 영원히 머물지 않아요. 모든 순간은 흐르고 있기에 오늘의 작은 한 줄이 새로운 물길을 내요.', "Neither yesterday's weight nor today's fog stays forever. Because every moment flows, one small line today opens a new current.")}
+     </div>
     </div>
    </div>
   `;
