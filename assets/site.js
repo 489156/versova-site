@@ -1381,9 +1381,38 @@
         ? dual('어제의 실수나 빈칸이 곧 나 자신은 아니에요. 지나간 기록이라는 옷을 가볍게 내려놓을 때 오늘의 나는 언제든 새로워져요.', "Yesterday's mistake or blank space is not who you are. When you set down the weight of past records, today's self is free to begin anew.")
         : dual('어제의 무거움도 오늘의 막막함도 영원히 머물지 않아요. 모든 순간은 흐르고 있기에 오늘의 작은 한 줄이 새로운 물길을 내요.', "Neither yesterday's weight nor today's fog stays forever. Because every moment flows, one small line today opens a new current.")}
      </div>
+     <div style="margin-top:8px;display:flex;justify-content:flex-end">
+      <button type="button" class="ym-pill" data-save-emotional-quote="${v.status === 'strained' ? '마음이 흔들리고 계획이 어긋나는 날이 있는 건 삶이 고장 나서가 아니라 살아 움직이고 있기 때문이에요.' : v.status === 'steady' || v.status === 'starting' ? '어제의 실수나 빈칸이 곧 나 자신은 아니에요. 지나간 기록이라는 옷을 가볍게 내려놓을 때 오늘의 나는 언제든 새로워져요.' : '어제의 무거움도 오늘의 막막함도 영원히 머물지 않아요. 모든 순간은 흐르고 있기에 오늘의 작은 한 줄이 새로운 물길을 내요.'}" style="min-height:26px;padding:3px 10px;font-size:11.5px">
+       ${dual('오늘 정서 기록에 담기', 'Keep in Emotional today')}
+      </button>
+     </div>
     </div>
    </div>
   `;
+ };
+
+ const bindHeroCardActions = container => {
+  if (!container) return;
+  for (const jumpEl of container.querySelectorAll('[data-jump-date]')) {
+   jumpEl.addEventListener('click', () => {
+    const targetDate = jumpEl.getAttribute('data-jump-date');
+    if (targetDate) {
+     loadDateIntoEditor(targetDate);
+     setTab('record');
+     showToast(`${targetDate} 기록을 불러왔어요.`, `Loaded ${targetDate} in Record editor.`);
+    }
+   });
+  }
+  for (const saveQuoteBtn of container.querySelectorAll('[data-save-emotional-quote]')) {
+   saveQuoteBtn.addEventListener('click', () => {
+    const quoteKo = saveQuoteBtn.getAttribute('data-save-emotional-quote') || '';
+    if (!quoteKo) return;
+    const prev = (currentDraft.emotional || '').trim();
+    currentDraft.emotional = prev ? `${prev} · ${quoteKo}`.slice(0, 200) : quoteKo.slice(0, 200);
+    syncFormFromDraft();
+    showToast('오늘의 정서 기록에 문장을 담았어요.', "Saved this reflection to today's Emotional note.");
+   });
+  }
  };
 
  const renderDashboard = () => {
@@ -1398,16 +1427,7 @@
   if (dashboardHeroEl) {
    const heroWindow = daysCount === 2 ? 14 : daysCount;
    dashboardHeroEl.innerHTML = renderHeroVerdictHtml(computeHeroVerdict(heroWindow, activeAxis));
-   for (const jumpEl of dashboardHeroEl.querySelectorAll('[data-jump-date]')) {
-    jumpEl.addEventListener('click', () => {
-     const targetDate = jumpEl.getAttribute('data-jump-date');
-     if (targetDate) {
-      loadDateIntoEditor(targetDate);
-      setTab('record');
-      showToast(`${targetDate} 기록을 불러왔어요.`, `Loaded ${targetDate} in Record editor.`);
-     }
-    });
-   }
+   bindHeroCardActions(dashboardHeroEl);
   }
 
   const recsInRange = datesInRange.map(d => records[d]).filter(r => r && hasRecordContent(r));
@@ -1981,16 +2001,7 @@
    ${obsCardHtml}
   `;
 
-  for (const jumpEl of signalsContentEl.querySelectorAll('[data-jump-date]')) {
-   jumpEl.addEventListener('click', () => {
-    const targetDate = jumpEl.getAttribute('data-jump-date');
-    if (targetDate) {
-     loadDateIntoEditor(targetDate);
-     setTab('record');
-     showToast(`${targetDate} 기록을 불러왔어요.`, `Loaded ${targetDate} in Record editor.`);
-    }
-   });
-  }
+  bindHeroCardActions(signalsContentEl);
  };
 
  // History & Export / Backup Renderer
