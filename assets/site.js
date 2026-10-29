@@ -445,7 +445,26 @@
      </div>`;
     }).join('');
 
-    yesterdayPeekEl.innerHTML = `<div>${axisBlocks}</div>`;
+    yesterdayPeekEl.innerHTML = `<div>${axisBlocks}</div>
+     <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--mvp-line);display:flex;justify-content:flex-end">
+      <button type="button" class="ym-pill" id="ym-btn-copy-yesterday-routines" style="min-height:28px;padding:4px 12px;font-size:12px">
+       ${dual('어제 루틴 그대로 불러오기', "Copy yesterday's routines")}
+      </button>
+     </div>`;
+    const copyBtn = yesterdayPeekEl.querySelector('#ym-btn-copy-yesterday-routines');
+    if (copyBtn) {
+     copyBtn.addEventListener('click', () => {
+      for (const q of QUESTIONS) {
+       const ans = yRec.reflections?.[q.key]?.answer;
+       if (ans !== undefined) {
+        currentDraft.reflections[q.key] = { answer: ans, note: '' };
+       }
+      }
+      persistDraft();
+      syncFormFromDraft();
+      showToast('어제 루틴 응답을 오늘 초안으로 불러왔어요.', "Copied yesterday's routines into today's draft.");
+     });
+    }
    }
   }
 
