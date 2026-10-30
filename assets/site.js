@@ -608,6 +608,207 @@
   showToast('현재 입력 칸을 비웠어요.', 'Cleared current form inputs.');
  });
 
+ const INTERLUDE_PREF_KEY = 'ym_mvp_interlude_v1';
+ let interludeEnabled = (() => {
+  try {
+   return localStorage.getItem(INTERLUDE_PREF_KEY) !== '0';
+  } catch {
+   return true;
+  }
+ })();
+ const lastInterludeByContext = {};
+ let interludeTimer = null;
+ let interludeSeq = 0;
+ let selectedMindfulPillar = null;
+ let mindfulQuoteOffset = 0;
+
+ const TILAKKHANA_PILLARS = [
+  {
+   pillar: 'anicca',
+   color: '#3B82F6',
+   shortKo: '무상(Anicca)',
+   shortEn: 'Anicca',
+   badgeKo: 'ANICCA · 무상(無常) · 흐르는 변화',
+   badgeEn: 'ANICCA · Impermanence · Flowing Change',
+   refKo: '모든 상태는 흐르고 변해요 · 무상(Anicca)',
+   refEn: 'Every state flows and changes · Anicca'
+  },
+  {
+   pillar: 'dukkha',
+   color: '#EC4899',
+   shortKo: '고(Dukkha)',
+   shortEn: 'Dukkha',
+   badgeKo: 'DUKKHA · 고(苦) · 마찰의 수용',
+   badgeEn: 'DUKKHA · Friction · Gentle Acceptance',
+   refKo: '삶의 마찰은 자연스러운 신호예요 · 고(Dukkha)',
+   refEn: 'Friction is a natural sign of life · Dukkha'
+  },
+  {
+   pillar: 'anatta',
+   color: '#10B981',
+   shortKo: '무아(Anatta)',
+   shortEn: 'Anatta',
+   badgeKo: 'ANATTA · 무아(無我) · 비집착과 자유',
+   badgeEn: 'ANATTA · Non-Attachment · Open Self',
+   refKo: '어제의 기록이 나를 가두지 않아요 · 무아(Anatta)',
+   refEn: 'Past records do not confine who you are · Anatta'
+  }
+ ];
+
+ const TILAKKHANA_QUOTES = [
+  {
+   pillar: 'anicca',
+   ko: '어제의 무거움도 오늘의 막막함도 영원히 머물지 않아요. 모든 순간은 흐르고 있기에 오늘의 작은 한 줄이 새로운 물길을 내요.',
+   en: "Neither yesterday's weight nor today's fog stays forever. Because every moment flows, one small line today opens a new current."
+  },
+  {
+   pillar: 'anicca',
+   ko: '멈춰 있던 시간조차 지나가는 계절일 뿐이에요. 고정된 정체란 없으니 지금 내딛는 한 걸음이면 충분해요.',
+   en: 'Even a paused season is already passing. Nothing is permanently stuck, so the single step you take right now is enough.'
+  },
+  {
+   pillar: 'anicca',
+   ko: '좋은 날의 들뜸도 흐린 날의 지침도 모두 지나가는 물결이에요. 파도를 밀어내지 않고 고요히 바라보듯 기록을 읽어봐요.',
+   en: 'Both bright excitement and weary clouds are passing waves. Read your records quietly, as if watching the tide without pushing it away.'
+  },
+  {
+   pillar: 'dukkha',
+   ko: '마음이 흔들리고 계획이 어긋나는 날이 있는 건 삶이 고장 나서가 아니라 살아 움직이고 있기 때문이에요.',
+   en: 'Days when your mind wavers or plans slip do not mean life is broken. They simply mean you are alive and moving.'
+  },
+  {
+   pillar: 'dukkha',
+   ko: '상처와 피로를 억지로 지우려 애쓰지 않아도 괜찮아요. 아픔을 있는 그대로 알아차리는 순간 마음의 긴장이 조금씩 풀려요.',
+   en: 'You do not have to force away hurt or fatigue. The moment you gently notice discomfort as it is, the tension begins to soften.'
+  },
+  {
+   pillar: 'dukkha',
+   ko: '완벽하지 않은 하루를 탓하지 마세요. 덜컹거리는 마찰을 다정하게 들여다보는 일이 가장 깊은 회복의 시작이에요.',
+   en: 'Do not blame an imperfect day. Looking kindly at where life felt rough is the quiet beginning of real recovery.'
+  },
+  {
+   pillar: 'anatta',
+   ko: '어제의 실수나 빈칸이 곧 나 자신은 아니에요. 지나간 기록이라는 옷을 가볍게 내려놓을 때 오늘의 나는 언제든 새로워져요.',
+   en: "Yesterday's mistake or blank space is not who you are. When you set down the weight of past records, today's self is free to begin anew."
+  },
+  {
+   pillar: 'anatta',
+   ko: '나는 고정된 점수가 아니라 매 순간 새로 피어나는 인연과 선택의 흐름이에요. 숫자에 묶이지 말고 오늘의 숨결에 머물러 봐요.',
+   en: "You are not a fixed score, but an unfolding stream of choices and moments. Rest in today's breath rather than clinging to numbers."
+  },
+  {
+   pillar: 'anatta',
+   ko: '비교하는 마음을 잠시 내려놓아도 괜찮아요. 어제의 나와 겨루지 않고 오늘의 나를 있는 그대로 따뜻하게 맞이해요.',
+   en: "It is okay to set comparison aside for a moment. Instead of competing with yesterday's self, welcome today's self just as you are."
+  }
+ ];
+
+ const pillarForStatusWeb = (status, context) => {
+  if (status === 'strained') return 'dukkha';
+  if (status === 'paused' || status === 'plateau' || status === 'returning' || status === 'improving') return 'anicca';
+  if (status === 'starting' || status === 'steady') return 'anatta';
+  if (context === 'signals_analysis') return 'dukkha';
+  if (context === 'dashboard_heavy' || context === 'persona_simulation') return 'anicca';
+  return 'anatta';
+ };
+
+ const pickMindfulQuoteWeb = (status, context, explicitPillar, offset) => {
+  const safeOffset = Math.max(0, Math.floor(offset || 0));
+  if (explicitPillar) {
+   const pool = TILAKKHANA_QUOTES.filter(q => q.pillar === explicitPillar);
+   if (pool.length) return pool[safeOffset % pool.length];
+  }
+  const pref = pillarForStatusWeb(status, context);
+  const matching = TILAKKHANA_QUOTES.filter(q => q.pillar === pref);
+  if (safeOffset === 0 && matching.length) return matching[0];
+  const baseIdx = Math.max(0, TILAKKHANA_QUOTES.findIndex(q => q.pillar === pref));
+  return TILAKKHANA_QUOTES[(baseIdx + safeOffset) % TILAKKHANA_QUOTES.length];
+ };
+
+ const appendQuoteSafeWeb = (current, quote, maxLen = 200) => {
+  const existing = String(current || '').trim();
+  const snippet = String(quote || '').trim();
+  if (!snippet || existing.includes(snippet)) return { status: 'duplicate', next: existing };
+  if (!existing) {
+   return snippet.length <= maxLen
+    ? { status: 'new', next: snippet }
+    : { status: 'no-room', next: existing };
+  }
+  const combined = `${existing} · ${snippet}`;
+  return combined.length <= maxLen
+   ? { status: 'appended', next: combined }
+   : { status: 'no-room', next: existing };
+ };
+
+ const dismissMindfulInterludeWeb = () => {
+  if (interludeTimer) {
+   window.clearTimeout(interludeTimer);
+   interludeTimer = null;
+  }
+  root.querySelector('#ym-mindful-interlude')?.remove();
+ };
+
+ const triggerMindfulInterludeWeb = (context, status = null) => {
+  if (!interludeEnabled) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const now = Date.now();
+  if (typeof lastInterludeByContext[context] === 'number' && now - lastInterludeByContext[context] < 60000) {
+   return;
+  }
+  lastInterludeByContext[context] = now;
+  const quote = pickMindfulQuoteWeb(status, context, null, interludeSeq);
+  interludeSeq += 1;
+  const meta = TILAKKHANA_PILLARS.find(p => p.pillar === quote.pillar) || TILAKKHANA_PILLARS[0];
+
+  dismissMindfulInterludeWeb();
+  if (getComputedStyle(root).position === 'static') {
+   root.style.position = 'relative';
+  }
+  const overlay = document.createElement('div');
+  overlay.id = 'ym-mindful-interlude';
+  overlay.setAttribute('role', 'button');
+  overlay.setAttribute('tabindex', '0');
+  overlay.setAttribute('aria-label', '정서안정 문장, 화면을 누르면 닫혀요');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:80;background:rgba(26,26,26,0.92);display:flex;align-items:center;justify-content:center;padding:24px;cursor:pointer';
+  overlay.innerHTML = `
+   <div style="max-width:520px;width:100%;background:#232323;color:#FFFFFF;border:1px solid #3A3A3A;border-left:3px solid ${meta.color};border-radius:12px;padding:20px 22px;box-shadow:0 18px 48px rgba(0,0,0,0.45)">
+    <div style="font-size:11.5px;font-weight:700;color:${meta.color};margin-bottom:4px">${dual(meta.badgeKo, meta.badgeEn)}</div>
+    <div style="font-size:12px;color:#A3A3A3;margin-bottom:12px">${dual('깊은 기록의 흐름을 차분히 정리하고 있어요', 'Quietly arranging the flow of your records')}</div>
+    <div style="font-size:15px;line-height:1.65;color:#FFFFFF;font-weight:500">${dual(quote.ko, quote.en)}</div>
+    <div style="margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;color:#B5B5B5">
+     <span>${dual('화면을 누르면 바로 열려요 (0.9초)', 'Tap anywhere to open right away (0.9s)')}</span>
+     <button type="button" data-disable-interlude="1" style="background:transparent;border:1px solid #4A4A4A;color:#D4D4D4;border-radius:999px;padding:3px 10px;font-size:11px;cursor:pointer">${dual('화면 전환 명언 끄기', 'Turn off between screens')}</button>
+    </div>
+   </div>
+  `;
+  overlay.addEventListener('click', ev => {
+   const offBtn = ev.target.closest('[data-disable-interlude]');
+   if (offBtn) {
+    ev.stopPropagation();
+    interludeEnabled = false;
+    try {
+     localStorage.setItem(INTERLUDE_PREF_KEY, '0');
+    } catch {
+     // ignore
+    }
+    dismissMindfulInterludeWeb();
+    showToast('화면 전환 명언을 껐어요.', 'Turned off reflections between screens.');
+    return;
+   }
+   dismissMindfulInterludeWeb();
+  });
+  overlay.addEventListener('keydown', ev => {
+   if (ev.key === 'Escape' || ev.key === 'Enter' || ev.key === ' ') {
+    ev.preventDefault();
+    dismissMindfulInterludeWeb();
+   }
+  });
+  root.appendChild(overlay);
+  interludeTimer = window.setTimeout(() => {
+   dismissMindfulInterludeWeb();
+  }, 900);
+ };
+
  // Tab switching
  const tabBtns = root.querySelectorAll('.ym-tab');
  const setTab = tabName => {
@@ -619,6 +820,10 @@
    p.classList.toggle('is-active', p.id === `ym-panel-${tabName}`);
   }
   renderAllPanels();
+  if (tabName === 'signals') {
+   const v = computeHeroVerdict(30, 'all');
+   triggerMindfulInterludeWeb('signals_analysis', v.status);
+  }
  };
  for (const b of tabBtns) {
   b.addEventListener('click', () => setTab(b.getAttribute('data-ym-tab')));
@@ -632,6 +837,10 @@
     peer.setAttribute('aria-pressed', String(peer === b));
    }
    renderDashboard();
+   if (activePeriod === 'month' || activePeriod === 'year') {
+    const v = computeHeroVerdict(getPeriodDaysCount(activePeriod), activeAxis);
+    triggerMindfulInterludeWeb('dashboard_heavy', v.status);
+   }
   });
  }
 
@@ -1050,13 +1259,14 @@
     loadDateIntoEditor(todayIso());
     renderPersonaSimulatorBar();
     renderAllPanels();
+    triggerMindfulInterludeWeb('persona_simulation', computeHeroVerdict(30, 'all').status);
     if (personaDetailEl) {
      personaDetailEl.hidden = false;
      personaDetailEl.innerHTML = `
       <div style="padding:10px 12px;border:1px solid var(--mvp-line);background:var(--mvp-card)">
        <div><strong style="color:var(--mvp-ink)">${dual(found.roleKo, found.roleEn)}</strong></div>
        <div style="margin-top:4px">${dual(found.painKo, found.painEn)}</div>
-       <div style="margin-top:3px;color:var(--mvp-accent)">${dual(found.fixKo, found.fixKo)}</div>
+       <div style="margin-top:3px;color:var(--mvp-accent)">${dual(found.fixKo, found.fixEn || found.fixKo)}</div>
       </div>
      `;
     }
@@ -1304,116 +1514,164 @@
    return `<button type="button" data-jump-date="${c.date}" title="${esc(tip)}" aria-label="${esc(tip)}" style="flex:1;height:22px;border:none;border-radius:3px;background:${col};cursor:pointer;padding:0"></button>`;
   }).join('');
 
-  return `
-   <div class="ym-card" style="border:2px solid ${st.color};margin-bottom:0">
-    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
-     <span class="ym-pill" style="border-color:${st.color};color:${st.color};font-weight:700;font-size:11.5px;min-height:26px">${dual(st.badgeKo, st.badgeEn)}</span>
-     <span class="ym-counter" style="font-size:13px">${dual(`현재 리듬 활력도 ${v.momentumScore}점 / 100`, `Rhythm Vitality ${v.momentumScore} / 100`)}</span>
+   const activeQuote = pickMindfulQuoteWeb(v.status, 'dashboard_heavy', selectedMindfulPillar, mindfulQuoteOffset);
+   const activePillarMeta = TILAKKHANA_PILLARS.find(p => p.pillar === activeQuote.pillar) || TILAKKHANA_PILLARS[0];
+   const pillarTabsHtml = TILAKKHANA_PILLARS.map(pm => {
+    const isAct = pm.pillar === activeQuote.pillar;
+    return `<button type="button" class="ym-pill" data-mindful-pillar="${pm.pillar}" aria-pressed="${isAct}" style="min-height:24px;padding:2px 9px;font-size:11px;border-color:${isAct ? pm.color : 'var(--mvp-line)'};color:${isAct ? pm.color : 'var(--mvp-muted)'};font-weight:${isAct ? '700' : '500'}">${dual(pm.shortKo, pm.shortEn)}</button>`;
+   }).join('');
+
+   return `
+    <div class="ym-card" style="border:2px solid ${st.color};margin-bottom:0">
+     <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+      <span class="ym-pill" style="border-color:${st.color};color:${st.color};font-weight:700;font-size:11.5px;min-height:26px">${dual(st.badgeKo, st.badgeEn)}</span>
+      <span class="ym-counter" style="font-size:13px">${dual(`현재 리듬 활력도 ${v.momentumScore}점 / 100`, `Rhythm Vitality ${v.momentumScore} / 100`)}</span>
+     </div>
+
+     <h3 style="font-family:var(--serif);font-size:clamp(20px,2.3vw,27px);line-height:1.35;margin:0;color:var(--mvp-ink)">${dual(st.headKo, st.headEn)}</h3>
+     <p style="margin:6px 0 0;font-size:13.5px;color:var(--mvp-muted)">${dual(st.subKo, st.subEn)}</p>
+
+     <div style="display:flex;gap:6px;margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
+      ${stageGaugeHtml}
+     </div>
+
+     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
+      <div>
+       <div class="ym-bar-meta">
+        <span><strong>${dual('긍정 루틴 실천율 (이전 → 최근)', 'Positive Routine Rate (Before → Now)')}</strong></span>
+        <span class="ym-counter" style="color:${st.color}">${dual(`이전 ${v.earlyPosPct}% → 최근 ${v.latePosPct}% (${posDeltaSign})`, `Before ${v.earlyPosPct}% → Now ${v.latePosPct}% (${posDeltaSign})`)}</span>
+       </div>
+       <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:6px">
+        <span class="micro">${dual('최근', 'Now')}</span>
+        <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.latePosPct)}%;background:#4CAF50"></div></div>
+       </div>
+       <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:4px">
+        <span class="micro">${dual('이전', 'Before')}</span>
+        <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.earlyPosPct)}%;background:var(--mvp-muted);opacity:0.45"></div></div>
+       </div>
+      </div>
+
+      <div>
+       <div class="ym-bar-meta">
+        <span><strong>${dual('기록 참여 밀도 (이전 → 최근)', 'Recording Density (Before → Now)')}</strong></span>
+        <span class="ym-counter">${dual(`이전 ${v.earlyActPct}% → 최근 ${v.lateActPct}% (${actDeltaSign})`, `Before ${v.earlyActPct}% → Now ${v.lateActPct}% (${actDeltaSign})`)}</span>
+       </div>
+       <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:6px">
+        <span class="micro">${dual('최근', 'Now')}</span>
+        <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.lateActPct)}%;background:#3B82F6"></div></div>
+       </div>
+       <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:4px">
+        <span class="micro">${dual('이전', 'Before')}</span>
+        <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.earlyActPct)}%;background:var(--mvp-muted);opacity:0.45"></div></div>
+       </div>
+      </div>
+     </div>
+
+     <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+       <span class="micro">${dual('최근 14일 일별 리듬 흐름 (오래된 날 → 오늘 · 칸을 눌러 해당 날짜 열기)', 'LAST 14 DAYS DAILY RHYTHM STRIP (OLDEST → TODAY · CLICK TO OPEN DAY)')}</span>
+       <span style="display:inline-flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--mvp-muted)">
+        <span><span class="ym-dot" style="background:#4CAF50;display:inline-block;margin-right:4px"></span>${dual('긍정 우세', 'Positive')}</span>
+        <span><span class="ym-dot" style="background:#EF4444;display:inline-block;margin-right:4px"></span>${dual('마찰 우세', 'Friction')}</span>
+        <span><span class="ym-dot" style="background:#3B82F6;display:inline-block;margin-right:4px"></span>${dual('한 줄 기록', 'Text Only')}</span>
+        <span><span class="ym-dot" style="background:var(--mvp-line);display:inline-block;margin-right:4px"></span>${dual('멈춤', 'Paused')}</span>
+       </span>
+      </div>
+      <div style="display:flex;gap:4px">${stripCellsHtml}</div>
+     </div>
+
+     <div style="margin-top:14px;padding:12px 14px;border:1px solid var(--mvp-line);border-left:3px solid ${activePillarMeta.color};background:var(--mvp-surface)">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px">
+       <span class="micro" style="font-weight:700;color:${activePillarMeta.color}">
+        ${dual(activePillarMeta.badgeKo, activePillarMeta.badgeEn)}
+       </span>
+       <span class="micro">${dual('정서안정 · 삼법인(三法印) 명언', 'Emotional Grounding · Tilakkhana')}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${pillarTabsHtml}</div>
+      <div style="font-size:13px;line-height:1.6;color:var(--mvp-ink)">
+       ${dual(activeQuote.ko, activeQuote.en)}
+      </div>
+      <div style="margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px">
+       <span class="micro">${dual(activePillarMeta.refKo, activePillarMeta.refEn)}</span>
+       <div style="display:inline-flex;flex-wrap:wrap;gap:6px">
+        <button type="button" class="ym-pill" data-save-emotional-quote="${esc(activeQuote.ko)}" style="min-height:26px;padding:3px 10px;font-size:11.5px;border-color:rgba(236,72,153,0.45)">
+         ${dual('오늘 정서 기록에 담기', 'Keep in Emotional today')}
+        </button>
+        <button type="button" class="ym-pill" data-next-mindful-quote="1" style="min-height:26px;padding:3px 10px;font-size:11.5px">
+         ${dual('다른 문장 보기', 'Another reflection')}
+        </button>
+       </div>
+      </div>
+     </div>
     </div>
+   `;
+  };
 
-    <h3 style="font-family:var(--serif);font-size:clamp(20px,2.3vw,27px);line-height:1.35;margin:0;color:var(--mvp-ink)">${dual(st.headKo, st.headEn)}</h3>
-    <p style="margin:6px 0 0;font-size:13.5px;color:var(--mvp-muted)">${dual(st.subKo, st.subEn)}</p>
-
-    <div style="display:flex;gap:6px;margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
-     ${stageGaugeHtml}
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
-     <div>
-      <div class="ym-bar-meta">
-       <span><strong>${dual('긍정 루틴 실천율 (이전 → 최근)', 'Positive Routine Rate (Before → Now)')}</strong></span>
-       <span class="ym-counter" style="color:${st.color}">${dual(`이전 ${v.earlyPosPct}% → 최근 ${v.latePosPct}% (${posDeltaSign})`, `Before ${v.earlyPosPct}% → Now ${v.latePosPct}% (${posDeltaSign})`)}</span>
-      </div>
-      <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:6px">
-       <span class="micro">${dual('최근', 'Now')}</span>
-       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.latePosPct)}%;background:#4CAF50"></div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:4px">
-       <span class="micro">${dual('이전', 'Before')}</span>
-       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.earlyPosPct)}%;background:var(--mvp-muted);opacity:0.45"></div></div>
-      </div>
-     </div>
-
-     <div>
-      <div class="ym-bar-meta">
-       <span><strong>${dual('기록 참여 밀도 (이전 → 최근)', 'Recording Density (Before → Now)')}</strong></span>
-       <span class="ym-counter">${dual(`이전 ${v.earlyActPct}% → 최근 ${v.lateActPct}% (${actDeltaSign})`, `Before ${v.earlyActPct}% → Now ${v.lateActPct}% (${actDeltaSign})`)}</span>
-      </div>
-      <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:6px">
-       <span class="micro">${dual('최근', 'Now')}</span>
-       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.lateActPct)}%;background:#3B82F6"></div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:48px 1fr;gap:8px;align-items:center;margin-top:4px">
-       <span class="micro">${dual('이전', 'Before')}</span>
-       <div class="ym-bar-track"><div class="ym-bar-fill" style="width:${Math.max(4, v.earlyActPct)}%;background:var(--mvp-muted);opacity:0.45"></div></div>
-      </div>
-     </div>
-    </div>
-
-    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--mvp-line)">
-     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
-      <span class="micro">${dual('최근 14일 일별 리듬 흐름 (오래된 날 → 오늘 · 칸을 눌러 해당 날짜 열기)', 'LAST 14 DAYS DAILY RHYTHM STRIP (OLDEST → TODAY · CLICK TO OPEN DAY)')}</span>
-      <span style="display:inline-flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--mvp-muted)">
-       <span><span class="ym-dot" style="background:#4CAF50;display:inline-block;margin-right:4px"></span>${dual('긍정 우세', 'Positive')}</span>
-       <span><span class="ym-dot" style="background:#EF4444;display:inline-block;margin-right:4px"></span>${dual('마찰 우세', 'Friction')}</span>
-       <span><span class="ym-dot" style="background:#3B82F6;display:inline-block;margin-right:4px"></span>${dual('한 줄 기록', 'Text Only')}</span>
-       <span><span class="ym-dot" style="background:var(--mvp-line);display:inline-block;margin-right:4px"></span>${dual('멈춤', 'Paused')}</span>
-      </span>
-     </div>
-     <div style="display:flex;gap:4px">${stripCellsHtml}</div>
-    </div>
-
-    <div style="margin-top:14px;padding:12px 14px;border:1px solid var(--mvp-line);border-left:3px solid ${v.status === 'strained' ? '#EC4899' : v.status === 'steady' || v.status === 'starting' ? '#10B981' : '#3B82F6'};background:var(--mvp-surface)">
-     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px">
-      <span class="micro" style="font-weight:700;color:${v.status === 'strained' ? '#EC4899' : v.status === 'steady' || v.status === 'starting' ? '#10B981' : '#3B82F6'}">
-       ${v.status === 'strained'
-        ? dual('DUKKHA · 고(苦) · 마찰의 수용', 'DUKKHA · Friction · Gentle Acceptance')
-        : v.status === 'steady' || v.status === 'starting'
-         ? dual('ANATTA · 무아(無我) · 비집착과 자유', 'ANATTA · Non-Attachment · Open Self')
-         : dual('ANICCA · 무상(無常) · 흐르는 변화', 'ANICCA · Impermanence · Flowing Change')}
-      </span>
-      <span class="micro">${dual('정서안정 · 삼법인(三法印) 명언', 'Emotional Grounding · Tilakkhana')}</span>
-     </div>
-     <div style="font-size:13px;line-height:1.6;color:var(--mvp-ink)">
-      ${v.status === 'strained'
-       ? dual('마음이 흔들리고 계획이 어긋나는 날이 있는 건 삶이 고장 나서가 아니라 살아 움직이고 있기 때문이에요.', 'Days when your mind wavers or plans slip do not mean life is broken. They simply mean you are alive and moving.')
-       : v.status === 'steady' || v.status === 'starting'
-        ? dual('어제의 실수나 빈칸이 곧 나 자신은 아니에요. 지나간 기록이라는 옷을 가볍게 내려놓을 때 오늘의 나는 언제든 새로워져요.', "Yesterday's mistake or blank space is not who you are. When you set down the weight of past records, today's self is free to begin anew.")
-        : dual('어제의 무거움도 오늘의 막막함도 영원히 머물지 않아요. 모든 순간은 흐르고 있기에 오늘의 작은 한 줄이 새로운 물길을 내요.', "Neither yesterday's weight nor today's fog stays forever. Because every moment flows, one small line today opens a new current.")}
-     </div>
-     <div style="margin-top:8px;display:flex;justify-content:flex-end">
-      <button type="button" class="ym-pill" data-save-emotional-quote="${v.status === 'strained' ? '마음이 흔들리고 계획이 어긋나는 날이 있는 건 삶이 고장 나서가 아니라 살아 움직이고 있기 때문이에요.' : v.status === 'steady' || v.status === 'starting' ? '어제의 실수나 빈칸이 곧 나 자신은 아니에요. 지나간 기록이라는 옷을 가볍게 내려놓을 때 오늘의 나는 언제든 새로워져요.' : '어제의 무거움도 오늘의 막막함도 영원히 머물지 않아요. 모든 순간은 흐르고 있기에 오늘의 작은 한 줄이 새로운 물길을 내요.'}" style="min-height:26px;padding:3px 10px;font-size:11.5px">
-       ${dual('오늘 정서 기록에 담기', 'Keep in Emotional today')}
-      </button>
-     </div>
-    </div>
-   </div>
-  `;
- };
-
- const bindHeroCardActions = container => {
-  if (!container) return;
-  for (const jumpEl of container.querySelectorAll('[data-jump-date]')) {
-   jumpEl.addEventListener('click', () => {
-    const targetDate = jumpEl.getAttribute('data-jump-date');
-    if (targetDate) {
-     loadDateIntoEditor(targetDate);
-     setTab('record');
-     showToast(`${targetDate} 기록을 불러왔어요.`, `Loaded ${targetDate} in Record editor.`);
-    }
-   });
-  }
-  for (const saveQuoteBtn of container.querySelectorAll('[data-save-emotional-quote]')) {
-   saveQuoteBtn.addEventListener('click', () => {
-    const quoteKo = saveQuoteBtn.getAttribute('data-save-emotional-quote') || '';
-    if (!quoteKo) return;
-    const prev = (currentDraft.emotional || '').trim();
-    currentDraft.emotional = prev ? `${prev} · ${quoteKo}`.slice(0, 200) : quoteKo.slice(0, 200);
-    syncFormFromDraft();
-    showToast('오늘의 정서 기록에 문장을 담았어요.', "Saved this reflection to today's Emotional note.");
-   });
-  }
- };
+  const bindHeroCardActions = container => {
+   if (!container) return;
+   for (const jumpEl of container.querySelectorAll('[data-jump-date]')) {
+    jumpEl.addEventListener('click', () => {
+     const targetDate = jumpEl.getAttribute('data-jump-date');
+     if (targetDate) {
+      loadDateIntoEditor(targetDate);
+      setTab('record');
+      showToast(`${targetDate} 기록을 불러왔어요.`, `Loaded ${targetDate} in Record editor.`);
+     }
+    });
+   }
+   for (const pillarBtn of container.querySelectorAll('[data-mindful-pillar]')) {
+    pillarBtn.addEventListener('click', () => {
+     const p = pillarBtn.getAttribute('data-mindful-pillar');
+     if (!p) return;
+     if (selectedMindfulPillar === p) {
+      mindfulQuoteOffset += 1;
+     } else {
+      selectedMindfulPillar = p;
+      mindfulQuoteOffset = 0;
+     }
+     renderDashboard();
+     renderSignals();
+    });
+   }
+   for (const nextBtn of container.querySelectorAll('[data-next-mindful-quote]')) {
+    nextBtn.addEventListener('click', () => {
+     mindfulQuoteOffset += 1;
+     renderDashboard();
+     renderSignals();
+    });
+   }
+   for (const saveQuoteBtn of container.querySelectorAll('[data-save-emotional-quote]')) {
+    saveQuoteBtn.addEventListener('click', () => {
+     const quoteKo = saveQuoteBtn.getAttribute('data-save-emotional-quote') || '';
+     if (!quoteKo) return;
+     const tIso = todayIso();
+     const existingToday = records[tIso] ? normalizeRecord(tIso, records[tIso]) : normalizeRecord(tIso, { reflections: emptyReflections() });
+     const res = appendQuoteSafeWeb(existingToday.emotional, quoteKo, 200);
+     if (res.status === 'duplicate') {
+      showToast('이 문장은 이미 오늘 정서 기록에 있어요.', "This reflection is already in today's Emotional note.");
+      return;
+     }
+     if (res.status === 'no-room') {
+      showToast('정서 칸이 가득 차서 담지 않았어요. 적어 둔 글은 그대로예요.', 'The Emotional note is full, so nothing was added. Your own words are untouched.');
+      return;
+     }
+     existingToday.emotional = res.next;
+     existingToday.updatedAt = new Date().toISOString();
+     records[tIso] = existingToday;
+     saveRecords(records);
+     if (activeDate === tIso) {
+      const draftRes = appendQuoteSafeWeb(currentDraft.emotional, quoteKo, 200);
+      currentDraft.emotional = draftRes.status === 'new' || draftRes.status === 'appended' ? draftRes.next : res.next;
+      syncFormFromDraft();
+     }
+     renderRecordSidebars();
+     renderDashboard();
+     renderSignals();
+     renderHistory();
+     showToast('오늘의 정서 기록에 문장을 담았어요.', "Saved this reflection to today's Emotional note.");
+    });
+   }
+  };
 
  const renderDashboard = () => {
   if (!kpiRowEl) return;
@@ -2176,6 +2434,7 @@
     saveRecords(records);
     loadDateIntoEditor(activeDate);
     renderAllPanels();
+    triggerMindfulInterludeWeb('backup_restore', computeHeroVerdict(30, 'all').status);
     showToast(`백업 파일에서 ${mergedCount}일의 기록을 병합했어요.`, `Merged ${mergedCount} days of records from backup.`);
    } catch {
     showToast('올바른 JSON 백업 파일이 아니에요.', 'Invalid JSON backup file.');
